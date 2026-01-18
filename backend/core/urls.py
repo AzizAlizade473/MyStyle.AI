@@ -20,5 +20,7 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/register/', views.register_user, name='register_user')
+    path('api/register/', views.register_user, name='register_user'),
+    path('api/search/', views.search_images, name='image-search'),
+    path('api/upload/', views.ImageUploadView.as_view(), name='image-upload'),
 ]

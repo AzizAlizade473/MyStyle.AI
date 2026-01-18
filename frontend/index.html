@@ -1,11 +1,111 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Vision App</title>
+    <title>AI Image Search Dashboard</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { border: 1px solid #ccc; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+        h2 { margin-top: 0; }
+        .result-item { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; padding: 10px 0; }
+        img { max-width: 100px; border-radius: 4px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+    </style>
 </head>
 <body>
-<h1>System is Online</h1>
-<p>Nginx is successfully serving this file.</p>
+
+    <h1>AI Vision Dashboard</h1>
+
+    <div class="section">
+        <h2>1. Upload Image</h2>
+        <input type="file" id="fileInput" accept="image/*">
+        <button onclick="uploadImage()">Upload & Process</button>
+        <div id="uploadStatus"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Search Images</h2>
+        <input type="text" id="searchInput" placeholder="e.g., 'a red dress' or 'cat'">
+        <button onclick="searchImages()">Search</button>
+        <div id="searchResults"></div>
+    </div>
+
+    <script>
+        // --- UPLOAD LOGIC ---
+        async function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            const statusDiv = document.getElementById('uploadStatus');
+            
+            if (fileInput.files.length === 0) {
+                statusDiv.innerText = "Please select a file first.";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+
+            statusDiv.innerHTML = "Uploading...";
+
+            try {
+                const response = await fetch('/api/upload/', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerHTML = `<span class="success">Upload Successful! (ID: ${data.id})</span><br>AI is processing in the background...`;
+                } else {
+                    statusDiv.innerHTML = `<span class="error">Error: ${JSON.stringify(data)}</span>`;
+                }
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerHTML = `<span class="error">Network Error</span>`;
+            }
+        }
+
+        // --- SEARCH LOGIC ---
+        async function searchImages() {
+            const query = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('searchResults');
+
+            if (!query) return;
+
+            resultsDiv.innerHTML = "Searching...";
+
+            try {
+                const response = await fetch(`/api/search/?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultsDiv.innerHTML = "";
+                    if (data.length === 0) {
+                        resultsDiv.innerHTML = "No matches found.";
+                        return;
+                    }
+
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'result-item';
+                        div.innerHTML = `
+                            <img src="${item.url}" alt="Result">
+                            <div>
+                                <strong>Score: ${item.score}</strong><br>
+                                ID: ${item.id}
+                            </div>
+                        `;
+                        resultsDiv.appendChild(div);
+                    });
+                } else {
+                    resultsDiv.innerHTML = `<span class="error">Error: ${JSON.stringify(data)}</span>`;
+                }
+            } catch (error) {
+                console.error(error);
+                resultsDiv.innerHTML = `<span class="error">Network Error</span>`;
+            }
+        }
+    </script>
 </body>
 </html>

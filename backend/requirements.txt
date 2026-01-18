@@ -8,4 +8,7 @@ pgvector
 Pillow
 requests
 dotenv
-# Add 'transformers' or 'open_clip_torch' later for AI
+git+https://github.com/openai/CLIP.git
+ftfy
+regex
+tqdm
