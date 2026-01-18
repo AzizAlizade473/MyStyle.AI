@@ -1,0 +1,11 @@
+Django>=5.0
+djangorestframework
+django-cors-headers
+celery
+redis
+psycopg2-binary
+pgvector
+Pillow
+requests
+dotenv
+# Add 'transformers' or 'open_clip_torch' later for AI
