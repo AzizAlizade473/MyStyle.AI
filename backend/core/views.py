@@ -1,23 +1,12 @@
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework import status, generics, parsers
+from rest_framework import generics, parsers
 from rest_framework.permissions import AllowAny
-from .serializers import UserRegistrationSerializer, ImageUploadSerializer
-from pgvector.django import L2Distance, CosineDistance
+from .serializers import ImageUploadSerializer
+from pgvector.django import CosineDistance
 
 from .models import ImageUpload
 from .ai import get_text_embedding
-
-@api_view(['POST'])
-@authentication_classes([])
-@permission_classes([AllowAny])
-def register_user(request):
-    if request.method == 'POST':
-        serializer = UserRegistrationSerializer(data = request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message':"User created successfully"}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors ,status=status.HTTP_400_BAD_REQUEST)
 
 # backend/core/views.py
 

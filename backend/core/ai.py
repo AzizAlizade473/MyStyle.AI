@@ -3,6 +3,15 @@ import clip
 from PIL import Image
 import numpy as np
 
+# For the CLIP to choose from
+TAXONOMY = {
+    "colors": ["Red", "Blue", "Green", "Black", "White", "Yellow", "Pink", "Purple", "Beige", "Grey"],
+    "materials": ["Denim", "Cotton", "Leather", "Wool", "Silk", "Polyester", "Linen", "Knitted"],
+    "styles": ["Casual", "Formal", "Streetwear", "Vintage", "Sporty", "Business", "Bohemian"],
+    # Note: 'Source' is hard for AI to guess from pixels alone, but we can try visual signatures
+    "sources": ["Temu", "Trendyol", "Local Seller", "Luxury Brand"] 
+}
+
 # Global variables to hold the model in memory (Singleton Pattern)
 _MODEL = None
 _PREPROCESS = None
@@ -62,4 +71,37 @@ def get_text_embedding(text):
         
     except Exception as e:
         print(f"[AI ERROR] Failed to embed text: {e}")
+        return None
+    
+def classify_embedding(image_vector_list, candidates):
+    """
+    Zero-Shot Classification:
+    Takes an image vector and a list of text options (e.g., ["Red", "Blue"]).
+    Returns the text option that best matches the image.
+    """
+    model, _ = get_model()
+    
+    try:
+        # 1. Convert candidates to Text Vectors
+        text_tokens = clip.tokenize(candidates).to(_DEVICE)
+        
+        with torch.no_grad():
+            text_features = model.encode_text(text_tokens)
+            text_features /= text_features.norm(dim=-1, keepdim=True)
+        
+        # 2. Prepare Image Vector (Convert list back to Tensor)
+        image_features = torch.tensor(image_vector_list).unsqueeze(0).to(_DEVICE)
+        
+        # 3. Calculate Similarity (Dot Product)
+        # shape: (1, n_candidates)
+        similarity = (100.0 * image_features @ text_features.T).softmax(dim=-1)
+        
+        # 4. Pick the winner
+        values, indices = similarity[0].topk(1)
+        best_index = indices[0].item()
+        
+        return candidates[best_index]
+
+    except Exception as e:
+        print(f"[AI CLASS ERROR] {e}")
         return None
