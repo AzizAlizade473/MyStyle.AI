@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import generics, parsers
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from .serializers import ImageUploadSerializer
 from pgvector.django import CosineDistance
 
@@ -45,5 +45,4 @@ class ImageUploadView(generics.CreateAPIView):
     serializer_class = ImageUploadSerializer
     parser_classes = [parsers.MultiPartParser, parsers.FormParser] # Important for handling files!
 
-    authentication_classes = [] 
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]

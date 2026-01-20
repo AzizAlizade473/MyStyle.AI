@@ -1,8 +1,10 @@
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics, permissions
 from rest_framework.permissions import AllowAny
 from .serializers import UserRegistrationSerializer
+from .models import UserProfile
+from .serializers import UserProfileSerializer
 
 
 @api_view(['POST'])
@@ -15,3 +17,11 @@ def register_user(request):
             serializer.save()
             return Response({'message':"User created successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors ,status=status.HTTP_400_BAD_REQUEST)
+
+class ManageProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserProfileSerializer
+    permission_classes = [permissions.IsAuthenticated] # <--- Only logged-in users
+
+    def get_object(self):
+        # Return the profile of the CURRENT user
+        return self.request.user.profile

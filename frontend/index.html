@@ -53,6 +53,15 @@
     </div>
 
     <script>
+        token = localStorage.getItem('userToken');
+
+        if (!token) {
+            document.querySelector('.section').innerHTML = `
+            <h2>1. Upload Inventory</h2>
+            <p>You must be logged in to access this page.</p>
+            <a href="login.html">Go to Login</a>
+            `;
+        }
         // --- TOGGLE LOGIC ---
         function toggleLocalFields() {
             const source = document.getElementById('sourceInput').value;
@@ -91,6 +100,7 @@
             try {
                 const response = await fetch('/api/core/upload/', { // Note: Check if your URL is /api/upload/ or /api/core/upload/ based on previous steps
                     method: 'POST',
+                    headers: { 'Authorization': `Token ${token}` },
                     body: formData
                 });
                 
