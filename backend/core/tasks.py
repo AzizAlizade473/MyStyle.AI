@@ -18,8 +18,15 @@ def process_image_task(image_id):
             # We use the vector we just made to guess the attributes
             upload.detected_color = classify_embedding(vector, TAXONOMY["colors"])
             upload.detected_material = classify_embedding(vector, TAXONOMY["materials"])
-            upload.detected_style = classify_embedding(vector, TAXONOMY["styles"])
+            upload.detected_type = classify_embedding(vector, TAXONOMY["types"])
             
+            if (upload.detected_type in ['Shirt', 'Sweatshirt']):
+                upload.detected_style = classify_embedding(vector, TAXONOMY["sh_styles"])
+            elif (upload.detected_type in ['Accessories']):
+                upload.detected_style = classify_embedding(vector, TAXONOMY["ac_styles"])
+            else:
+                upload.detected_style = classify_embedding(vector, TAXONOMY["styles"])
+
             upload.processed = True
             upload.save()
             

@@ -25,6 +25,7 @@ class ImageUpload(models.Model):
     detected_color = models.CharField(max_length=50, blank=True, null=True)
     detected_material = models.CharField(max_length=50, blank=True, null=True)
     detected_style = models.CharField(max_length=50, blank=True, null=True)
+    detected_type = models.CharField(max_length=50, blank=True, null=True)
     detected_source = models.CharField(max_length=50, blank=True, null=True)
 
     def __str__(self):

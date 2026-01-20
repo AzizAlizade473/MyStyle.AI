@@ -5,9 +5,12 @@ import numpy as np
 
 # For the CLIP to choose from
 TAXONOMY = {
+    "types":['Shirt', 'Sweatshirt', 'Jacket', 'Hoodie', 'Trousers', 'Shoes', 'Underwear & Socks', 'Accessories'],
+    "ac_styles":["Glasses", "Jewelery", "Belt", "Bag", "Watch", "Scarf", "Wallet", "Hat"],
+    "sh_styles":[ "t-shirt", "polo", "turtleneck", "with zipper", "with buttons", "crewneck"],
     "colors": ["Red", "Blue", "Green", "Black", "White", "Yellow", "Pink", "Purple", "Beige", "Grey"],
     "materials": ["Denim", "Cotton", "Leather", "Wool", "Silk", "Polyester", "Linen", "Knitted"],
-    "styles": ["Casual", "Formal", "Streetwear", "Vintage", "Sporty", "Business", "Bohemian"],
+    "styles": ["Casual", "Formal", "Streetwear", "Vintage", "Sporty", "Business", "Bohemian", "Straight", "Oversized"],
     # Note: 'Source' is hard for AI to guess from pixels alone, but we can try visual signatures
     "sources": ["Temu", "Trendyol", "Local Seller", "Luxury Brand"] 
 }

@@ -121,13 +121,22 @@
         async function searchImages() {
             const query = document.getElementById('searchInput').value;
             const resultsDiv = document.getElementById('searchResults');
+            const token = localStorage.getItem('userToken'); // <--- Get the Token
 
             if (!query) return;
 
             resultsDiv.innerHTML = "Searching...";
 
             try {
-                const response = await fetch(`/api/search/?q=${encodeURIComponent(query)}`);
+                // ADD HEADERS HERE
+                const response = await fetch(`/api/core/search/?q=${encodeURIComponent(query)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': 'Token ' + token, // <--- Send the Key
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
                 const data = await response.json();
 
                 if (response.ok) {

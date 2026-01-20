@@ -1,9 +1,10 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework import generics, parsers
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from .serializers import ImageUploadSerializer
 from pgvector.django import CosineDistance
+from rest_framework.authentication import TokenAuthentication
 
 from .models import ImageUpload
 from .ai import get_text_embedding
@@ -11,7 +12,8 @@ from .ai import get_text_embedding
 # backend/core/views.py
 
 @api_view(['GET'])
-@permission_classes([AllowAny])
+@authentication_classes([TokenAuthentication]) # <--- STRICT MODE: Ignore Cookies
+@permission_classes([IsAuthenticated])         # <--- User must be logged in
 def search_images(request):
     query = request.GET.get('q', '')
     if not query:
@@ -43,6 +45,18 @@ def search_images(request):
 class ImageUploadView(generics.CreateAPIView):
     queryset = ImageUpload.objects.all()
     serializer_class = ImageUploadSerializer
-    parser_classes = [parsers.MultiPartParser, parsers.FormParser] # Important for handling files!
-
+    parser_classes = [parsers.MultiPartParser, parsers.FormParser]
+    
+    # 1. STRICTLY use Token Auth only.
+    # This ignores the Session Cookie, bypassing the CSRF check entirely.
+    authentication_classes = [TokenAuthentication]
+    
+    # 2. Require the user to be logged in (via Token)
     permission_classes = [IsAuthenticated]
+
+    # Optional: Automatically link the uploaded image to the user
+    def perform_create(self, serializer):
+        # If your ImageUpload model has a 'user' field, you can do this:
+        # serializer.save(user=self.request.user)
+        # If not, just save typically:
+        serializer.save()
