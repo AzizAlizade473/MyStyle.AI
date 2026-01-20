@@ -21,6 +21,7 @@ services:
       - ./backend:/app
       - ./media_local:/app/media  # Local storage for dev
       - static_volume:/app/static
+      - clip_cache:/root/.cache/clip
     env_file:
       - .env
     depends_on:
@@ -30,7 +31,7 @@ services:
   # 4. The AI Worker
   celery:
     build: ./backend  # Reuses the same code as backend
-    command: celery -A core worker --loglevel=info
+    command: celery -A config worker --loglevel=info
     volumes:
       - ./backend:/app
       - ./media_local:/app/media
@@ -56,3 +57,4 @@ services:
 volumes:
   postgres_data:
   static_volume:
+  clip_cache:
