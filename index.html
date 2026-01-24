@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Espresso - Modern Stylist v6.0</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"DM Sans"', 'sans-serif'], display: ['"Space Grotesk"', 'sans-serif'] },
+                    colors: { 
+                        black: '#000000', 
+                        white: '#FFFFFF',
+                        temu: '#FF6000',
+                        trendyol: '#F27A1A',
+                        amazon: '#FF9900',
+                        zara: '#000000'
+                    },
+                    boxShadow: { 'premium': '0 10px 40px -10px rgba(0,0,0,0.1)', 'brand': '0 4px 14px 0 rgba(0,0,0,0.05)' }
+                }
+            }
+        }
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
+    
+    <style>
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .input-minimal { width: 100%; background: #F9F9F9; border: 1px solid #EEE; padding: 18px; border-radius: 16px; outline: none; transition: all 0.2s; font-size: 16px; }
+        .input-minimal:focus { border-color: #000; background: #FFF; box-shadow: 0 0 0 4px rgba(0,0,0,0.05); }
+        
+        [x-cloak] { display: none !important; }
+        
+        html, body { 
+            height: 100%; 
+            overflow: hidden; 
+            background: #fdfdfd; 
+            touch-action: pan-y; /* Vertical scroll ok, Horizontal handled by JS */
+        }
+
+        .brand-logo-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+</head>
+<body class="text-black antialiased h-screen overflow-hidden" 
+      @touchstart="touchStart($event)" 
+      @touchend="touchEnd($event)">
+
+    <div x-data="espressoApp()" x-init="init()" class="w-full h-full relative max-w-md mx-auto bg-white shadow-2xl flex flex-col" x-cloak>
+
+        <!-- CAMERA -->
+        <input type="file" x-ref="cameraInput" accept="image/*" capture="environment" class="hidden" @change="handleImageUpload($event)">
+
+        <!-- ================= 0. SPLASH ================= -->
+        <div x-show="showSplash" x-transition.opacity.duration.800ms class="absolute inset-0 z-[400] bg-black flex flex-col items-center justify-center">
+            <div class="w-24 h-24 border-4 border-white rounded-full flex items-center justify-center mb-4 animate-bounce">
+                <span class="text-5xl font-bold text-white italic">E</span>
+            </div>
+            <h2 class="text-white text-xl font-display tracking-[0.4em] uppercase">Espresso</h2>
+        </div>
+
+        <!-- ================= 1. AUTH ================= -->
+        <div x-show="currentView === 'auth'" class="absolute inset-0 z-[300] bg-white flex flex-col h-full p-8">
+            <div class="flex-1 flex flex-col justify-center">
+                <div class="mb-16">
+                    <h1 class="text-7xl font-display font-bold tracking-tighter mb-4">ESPRESSO.</h1>
+                    <p class="text-gray-400 text-xl" x-text="t[lang].auth_subtitle"></p>
+                </div>
+
+                <div class="space-y-4">
+                    <div x-show="authMode === 'login'" class="space-y-4 animate-fade-in">
+                        <input type="email" x-model="loginData.email" placeholder="Email Address" class="input-minimal">
+                        <input type="password" x-model="loginData.password" placeholder="Password" class="input-minimal">
+                        <button @click="attemptLogin()" class="w-full bg-black text-white py-5 rounded-2xl font-bold text-sm tracking-widest uppercase active:scale-95 transition-all shadow-xl">SIGN IN</button>
+                        <p class="text-center text-sm text-gray-500 mt-6 cursor-pointer" @click="authMode = 'register'">New? Create Account</p>
+                    </div>
+                    <div x-show="authMode === 'register'" class="space-y-4 animate-fade-in">
+                        <input type="text" x-model="registerData.name" placeholder="Full Name" class="input-minimal">
+                        <input type="email" x-model="registerData.email" placeholder="Email" class="input-minimal">
+                        <input type="password" x-model="registerData.password" placeholder="Password" class="input-minimal">
+                        <button @click="attemptRegister()" class="w-full bg-black text-white py-5 rounded-2xl font-bold text-sm tracking-widest uppercase">GET STARTED</button>
+                        <p class="text-center text-sm text-gray-500 mt-6 cursor-pointer" @click="authMode = 'login'">Already a member?</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 2. MAIN APP CONTENT ================= -->
+        <div x-show="currentView !== 'auth'" class="flex-1 flex flex-col h-full overflow-hidden">
+            
+            <!-- HEADER -->
+            <header class="px-6 pt-12 pb-4 bg-white/80 backdrop-blur-md flex justify-between items-center z-10 shrink-0 border-b border-gray-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-black rounded-full text-white flex items-center justify-center font-bold text-base shadow-lg" x-text="user.name.charAt(0)"></div>
+                    <span class="font-display font-bold text-xl" x-text="user.name"></span>
+                </div>
+                <div class="flex gap-4">
+                    <button @click="setLang('az')" class="text-[10px] font-black tracking-widest transition-colors" :class="lang==='az' ? 'text-black border-b-2 border-black' : 'text-gray-300'">AZ</button>
+                    <button @click="setLang('en')" class="text-[10px] font-black tracking-widest transition-colors" :class="lang==='en' ? 'text-black border-b-2 border-black' : 'text-gray-300'">EN</button>
+                </div>
+            </header>
+
+            <div class="flex-1 relative overflow-hidden">
+                
+                <!-- TAB 1: HOME -->
+                <div x-show="currentTab === 'home' && !isProcessing" class="absolute inset-0 overflow-y-auto pb-24 scroll-container">
+                    <!-- Weather Story (Rəngli) -->
+                    <div @click="openDetail(weatherProduct)" class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 mx-4 mt-4 rounded-[32px] flex items-center justify-between shadow-xl cursor-pointer group active:scale-[0.98] transition-all relative overflow-hidden">
+                        <div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                        <div class="flex items-center gap-5 relative z-10">
+                            <div class="bg-white/20 backdrop-blur-md p-4 rounded-3xl"><i class="fas fa-cloud-showers-heavy text-3xl"></i></div>
+                            <div>
+                                <p class="text-[10px] font-bold text-white/60 uppercase tracking-[0.2em]">Live • Baku</p>
+                                <p class="text-base font-bold mt-0.5" x-text="t[lang].weather_tip"></p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-white/40"></i>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="p-4 grid grid-cols-1 gap-4 mt-2">
+                        <div @click="$refs.cameraInput.click()" class="bg-black text-white p-8 rounded-[32px] flex flex-col items-center justify-center gap-3 cursor-pointer active:scale-95 transition-all shadow-2xl relative overflow-hidden">
+                            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+                            <i class="fas fa-camera-retro text-4xl mb-1"></i>
+                            <h3 class="font-display font-bold text-2xl uppercase tracking-tighter" x-text="t[lang].snap_match"></h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <button @click="startFlow('link')" class="bg-white border border-gray-100 p-6 rounded-[28px] flex flex-col items-center justify-center gap-3 active:scale-95 transition-all shadow-sm border-b-4 border-gray-100">
+                                <i class="fas fa-link text-xl text-blue-500"></i><span class="font-bold text-[10px] uppercase tracking-widest" x-text="t[lang].paste_link"></span>
+                            </button>
+                            <button @click="startFlow('text')" class="bg-white border border-gray-100 p-6 rounded-[28px] flex flex-col items-center justify-center gap-3 active:scale-95 transition-all shadow-sm border-b-4 border-gray-100">
+                                <i class="fas fa-magic text-xl text-amber-500"></i><span class="font-bold text-[10px] uppercase tracking-widest" x-text="t[lang].write_prompt"></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="px-6 mt-4">
+                        <h3 class="font-display font-bold text-lg mb-6" x-text="t[lang].recent_history"></h3>
+                        <div class="space-y-4 pb-10">
+                            <template x-for="item in history" :key="item.id">
+                                <div @click="loadFromHistory(item)" class="flex items-center gap-4 group cursor-pointer active:opacity-70">
+                                    <img :src="item.image" class="w-16 h-16 rounded-2xl object-cover border border-gray-100 shadow-sm">
+                                    <div class="flex-1 border-b border-gray-50 pb-4">
+                                        <p class="font-bold text-sm" x-text="item.name"></p>
+                                        <p class="text-xs text-gray-400 mt-1" x-text="item.date"></p>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-gray-200 text-xs"></i>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: WARDROBE -->
+                <div x-show="currentTab === 'wardrobe'" class="absolute inset-0 overflow-y-auto bg-gray-50/50 px-6 pt-6 pb-24 scroll-container" x-transition:enter="transition ease-out duration-300">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="text-4xl font-display font-bold tracking-tighter" x-text="t[lang].wardrobe"></h2>
+                        <button @click="$refs.cameraInput.click()" class="bg-black text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-xl active:scale-90 transition-transform"><i class="fas fa-plus"></i></button>
+                    </div>
+                    <div class="flex gap-4 overflow-x-auto hide-scroll mb-8 border-b border-gray-200 pb-2">
+                        <template x-for="filter in ['all', 'top', 'pants', 'shoes']">
+                            <button @click="wardrobeFilter = filter" class="text-xs font-bold uppercase tracking-widest pb-3 relative" :class="wardrobeFilter === filter ? 'text-black' : 'text-gray-300'">
+                                <span x-text="filter === 'all' ? t[lang].all : t[lang]['cat_' + filter]"></span>
+                                <div x-show="wardrobeFilter === filter" class="absolute bottom-0 left-0 right-0 h-1 bg-black rounded-full"></div>
+                            </button>
+                        </template>
+                    </div>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-8 pb-10">
+                        <template x-for="item in filteredWardrobe" :key="item.id">
+                            <div @click="openDetail(item, true)" class="group bg-white rounded-[24px] p-2 shadow-sm border border-gray-100 active:scale-95 transition-all">
+                                <div class="aspect-[3/4] bg-gray-50 overflow-hidden rounded-[20px] relative">
+                                    <img :src="item.image" class="w-full h-full object-cover">
+                                    <div class="absolute top-2 right-2 bg-black/80 text-white text-[8px] font-black px-2 py-1 rounded shadow-lg">OWNED</div>
+                                </div>
+                                <div class="p-2">
+                                    <p class="font-bold text-xs truncate" x-text="item.name"></p>
+                                    <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wider" x-text="item.brand"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- TAB 3: PROFILE -->
+                <div x-show="currentTab === 'profile'" class="absolute inset-0 overflow-y-auto bg-white px-6 pt-10" x-transition:enter="transition ease-out duration-300">
+                    <div class="flex items-center gap-6 mb-12 bg-gray-50 p-6 rounded-[32px] border border-gray-100">
+                        <div class="w-20 h-20 rounded-full bg-black flex items-center justify-center text-4xl font-display font-bold text-white shadow-2xl" x-text="user.name.charAt(0)"></div>
+                        <div><h3 class="font-display font-bold text-2xl" x-text="user.name"></h3><p class="text-sm text-gray-400 font-medium">Style ID: #440-92</p></div>
+                    </div>
+                    <div class="space-y-10">
+                        <div>
+                            <h3 class="font-bold text-[10px] uppercase tracking-[0.3em] text-gray-300 mb-6" x-text="t[lang].my_sizes"></h3>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div @click="changeSize('top')" class="p-5 border border-gray-100 rounded-3xl text-center cursor-pointer hover:border-black transition-all active:scale-95 bg-white shadow-sm">
+                                    <p class="text-[9px] font-bold text-gray-400 mb-1" x-text="t[lang].cat_top"></p><p class="font-bold text-xl" x-text="user.sizes.top"></p>
+                                </div>
+                                <div @click="changeSize('bottom')" class="p-5 border border-gray-100 rounded-3xl text-center cursor-pointer hover:border-black transition-all active:scale-95 bg-white shadow-sm">
+                                    <p class="text-[9px] font-bold text-gray-400 mb-1" x-text="t[lang].cat_pants"></p><p class="font-bold text-xl" x-text="user.sizes.bottom"></p>
+                                </div>
+                                <div @click="changeSize('shoe')" class="p-5 border border-gray-100 rounded-3xl text-center cursor-pointer hover:border-black transition-all active:scale-95 bg-white shadow-sm">
+                                    <p class="text-[9px] font-bold text-gray-400 mb-1" x-text="t[lang].cat_shoes"></p><p class="font-bold text-xl" x-text="user.sizes.shoe"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div @click="logout()" class="flex justify-between items-center p-6 rounded-2xl bg-red-50 text-red-600 font-bold uppercase tracking-widest text-xs active:scale-[0.98] transition-all">
+                            <span x-text="t[lang].logout"></span>
+                            <i class="fas fa-power-off"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- NAVBAR -->
+            <nav class="bg-white/90 backdrop-blur-xl border-t border-gray-100 px-10 py-6 flex justify-between items-center shrink-0 z-40 fixed bottom-0 left-0 right-0 max-w-md mx-auto">
+                <button @click="switchTab('home')" class="text-2xl transition-all" :class="currentTab === 'home' ? 'text-black' : 'text-gray-200'"><i class="fas fa-home"></i></button>
+                <button @click="switchTab('wardrobe')" class="text-2xl transition-all" :class="currentTab === 'wardrobe' ? 'text-black' : 'text-gray-200'"><i class="fas fa-layer-group"></i></button>
+                <button @click="switchTab('profile')" class="text-2xl transition-all" :class="currentTab === 'profile' ? 'text-black' : 'text-gray-200'"><i class="fas fa-user-circle"></i></button>
+            </nav>
+        </div>
+
+        <!-- ================= 3. OVERLAYS ================= -->
+        
+        <div x-show="isProcessing" class="absolute inset-0 z-[200] bg-white flex flex-col h-full overflow-hidden" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-full" x-transition:enter-end="opacity-100 translate-y-0">
+            <!-- INPUT -->
+            <div x-show="step === 'input'" class="flex-1 p-6 flex flex-col">
+                <div class="flex justify-between items-center mb-8 pt-8">
+                    <button @click="cancelFlow()" class="w-10 h-10 border border-gray-100 rounded-full flex items-center justify-center text-black"><i class="fas fa-times"></i></button>
+                    <span class="font-bold text-[10px] uppercase tracking-[0.3em] text-gray-400">Analysis</span><div class="w-10"></div>
+                </div>
+                
+                <div x-show="stylingOwnedItem" class="mb-8 flex items-center gap-4 bg-gray-50 p-5 rounded-[24px] border border-gray-100">
+                    <img :src="stylingOwnedItem?.image" class="w-16 h-16 object-cover rounded-xl shadow-sm">
+                    <div><p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Input Item</p><p class="font-bold text-lg" x-text="stylingOwnedItem?.name"></p></div>
+                </div>
+
+                <h2 class="text-3xl font-display font-bold mb-6 tracking-tight" x-text="stylingOwnedItem ? 'Match this with?' : (inputType === 'link' ? t[lang].paste_link : t[lang].describe_item)"></h2>
+                <textarea x-show="!stylingOwnedItem" x-model="userInput" class="w-full bg-gray-50 border border-gray-100 rounded-[24px] p-6 text-lg h-32 focus:border-black outline-none resize-none mb-8"></textarea>
+
+                <div class="mb-8">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4" x-text="t[lang].occasion_label"></p>
+                    <div class="flex gap-2 overflow-x-auto hide-scroll pb-2">
+                        <template x-for="occ in occasions">
+                            <button @click="selectedOccasion = (selectedOccasion === occ ? null : occ)" class="px-5 py-3 border rounded-full text-[10px] font-black transition-all whitespace-nowrap uppercase tracking-widest" :class="selectedOccasion === occ ? 'bg-black text-white border-black shadow-xl' : 'bg-white text-gray-400 border-gray-100'"><span x-text="occ"></span></button>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="space-y-4 mb-auto">
+                    <div class="flex items-center justify-between p-5 border border-gray-100 rounded-3xl bg-gray-50">
+                        <div class="flex items-center gap-3"><i class="fas fa-leaf text-green-600"></i><p class="font-bold text-sm" x-text="t[lang].vintage_label"></p></div>
+                        <input type="checkbox" x-model="isVintageMode" class="w-6 h-6 accent-black">
+                    </div>
+                </div>
+                <button @click="step='category'" class="w-full bg-black text-white py-5 rounded-2xl font-black tracking-widest uppercase disabled:opacity-50 mt-4 shadow-xl active:scale-95 transition-all" :disabled="(!userInput && !stylingOwnedItem)" x-text="t[lang].next"></button>
+            </div>
+
+            <!-- CATEGORY -->
+            <div x-show="step === 'category'" class="flex-1 p-6 animate-slide-up flex flex-col h-full">
+                <div class="flex justify-between items-center mb-8 pt-8"><button @click="step='input'" class="text-xl"><i class="fas fa-arrow-left"></i></button><span class="font-bold text-[10px] uppercase tracking-[0.3em] text-gray-400">Step 2/2</span><div class="w-6"></div></div>
+                <h2 class="text-4xl font-display font-bold mb-10 tracking-tight">Select Target</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <template x-for="cat in categories">
+                        <div @click="selectTargetCategory(cat.id)" class="p-8 border border-gray-100 rounded-[32px] flex flex-col items-center gap-4 cursor-pointer hover:border-black transition-all bg-gray-50 active:scale-95">
+                            <i :class="cat.icon" class="text-3xl text-gray-400"></i>
+                            <span class="font-bold text-[10px] uppercase tracking-[0.2em]" x-text="t[lang][cat.key]"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- LOADING -->
+            <div x-show="step === 'loading'" class="flex-1 flex flex-col items-center justify-center bg-black text-white">
+                <div class="w-20 h-20 border-4 border-white/20 border-t-white rounded-full animate-spin mb-8"></div>
+                <h3 class="font-display font-bold text-3xl tracking-tighter" x-text="t[lang].finding_matches"></h3>
+                <p class="text-[10px] text-white/50 font-bold uppercase tracking-[0.3em] mt-4" x-text="t[lang].ai_desc"></p>
+            </div>
+
+            <!-- RESULTS -->
+            <div x-show="step === 'results'" class="flex-1 flex flex-col bg-gray-50 animate-slide-up overflow-hidden h-full">
+                <div class="px-6 pt-12 pb-4 bg-white border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+                    <button @click="cancelFlow()" class="text-xl text-black"><i class="fas fa-times"></i></button>
+                    <span class="font-display font-bold text-xl tracking-tight">Matches Found</span>
+                    <button @click="vibeCheck()" class="text-[10px] font-black border-2 border-black px-4 py-2 rounded-full uppercase tracking-widest">Share</button>
+                </div>
+                <div class="flex-1 overflow-y-auto p-4 space-y-10 pb-24">
+                    <!-- Closet -->
+                    <div x-show="closetMatches.length > 0">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-6 px-2">Closet synergy</h4>
+                        <div class="space-y-4">
+                            <template x-for="item in closetMatches">
+                                <div @click="openDetail(item, true)" class="bg-white rounded-[28px] p-4 border border-gray-100 flex gap-5 cursor-pointer relative overflow-hidden shadow-sm active:scale-[0.98] transition-all">
+                                    <div class="absolute left-0 top-0 bottom-0 w-2 bg-black"></div>
+                                    <div class="w-24 h-28 bg-gray-50 rounded-2xl overflow-hidden shrink-0"><img :src="item.image" class="w-full h-full object-cover"></div>
+                                    <div class="flex-1 py-1">
+                                        <div class="flex justify-between items-center"><span class="text-[9px] font-black bg-gray-900 text-white px-2 py-0.5 rounded uppercase">Owned</span><i class="fas fa-check-circle text-black text-sm"></i></div>
+                                        <h4 class="font-bold text-lg mt-2 tracking-tight" x-text="item.name"></h4>
+                                        <p class="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-widest">100% Match</p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                    <!-- Shops -->
+                    <div>
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-6 px-2">Marketplace picks</h4>
+                        <div class="grid grid-cols-1 gap-4">
+                            <template x-for="item in filteredResults">
+                                <div @click="openDetail(item)" class="bg-white rounded-[32px] p-5 border border-gray-100 shadow-sm flex gap-5 cursor-pointer active:scale-[0.98] transition-all relative">
+                                    <div class="w-28 h-36 bg-gray-50 rounded-2xl overflow-hidden shrink-0 relative border border-gray-50">
+                                        <img :src="item.image" class="w-full h-full object-cover">
+                                        <template x-if="item.isVintage"><div class="absolute bottom-0 left-0 right-0 bg-green-900 text-white text-[7px] text-center font-black py-1 uppercase tracking-widest">Vintage</div></template>
+                                    </div>
+                                    <div class="flex-1 flex flex-col justify-between py-1">
+                                        <div>
+                                            <div class="flex justify-between items-center">
+                                                <div class="flex items-center gap-1.5">
+                                                    <div class="brand-logo-badge" :style="`background: ${getBrandColor(item.brand)}`" x-text="item.brand.charAt(0)"></div>
+                                                    <span class="text-[10px] font-black uppercase text-black tracking-widest" x-text="item.brand"></span>
+                                                </div>
+                                                <span class="text-[8px] font-black text-white bg-black px-1.5 py-0.5 rounded" x-text="item.isLocal ? 'STORE' : 'WEB'"></span>
+                                            </div>
+                                            <h4 class="font-bold text-lg leading-tight mt-2 tracking-tight" x-text="item.name"></h4>
+                                            <p class="text-[9px] text-gray-400 font-bold mt-1 uppercase" x-text="item.isLocal ? 'Baku City Center' : 'Global Shipping'"></p>
+                                        </div>
+                                        <div class="flex justify-between items-end">
+                                            <span class="font-bold text-2xl tracking-tighter" x-text="item.price"></span>
+                                            <span class="text-[9px] font-black border-b-2 border-black pb-0.5 tracking-widest uppercase">Select</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRODUCT DETAIL MODAL -->
+        <div x-show="detailModalOpen" class="fixed inset-0 z-[500] flex items-end justify-center pointer-events-none" x-transition:enter="transition ease-out duration-400" x-transition:enter-start="opacity-0 translate-y-full" x-transition:enter-end="opacity-100 translate-y-0">
+            <div class="absolute inset-0 bg-black/50 backdrop-blur-md pointer-events-auto" @click="detailModalOpen = false"></div>
+            <div class="bg-white w-full max-w-md h-[92vh] rounded-t-[48px] overflow-y-auto relative pointer-events-auto flex flex-col shadow-[0_-10px_60px_rgba(0,0,0,0.3)]">
+                <button @click="detailModalOpen = false" class="absolute top-6 right-6 w-12 h-12 bg-white rounded-full flex items-center justify-center z-10 shadow-xl text-black"><i class="fas fa-times text-lg"></i></button>
+                <div class="h-[48vh] w-full bg-gray-50 border-b border-gray-100 relative overflow-hidden">
+                    <img :src="selectedItem?.image" class="w-full h-full object-cover">
+                    <template x-if="isViewingOwnedItem"><div class="absolute top-8 left-8 bg-black text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl">Owned Item</div></template>
+                </div>
+                
+                <div class="p-10 flex-1 flex flex-col">
+                    <div class="mb-8">
+                        <div class="flex items-center gap-2 mb-2">
+                             <div class="brand-logo-badge h-6 w-6" :style="`background: ${getBrandColor(selectedItem?.brand)}`" x-text="selectedItem?.brand?.charAt(0)"></div>
+                             <span class="text-[11px] font-black uppercase tracking-[0.3em] text-gray-400" x-text="selectedItem?.brand"></span>
+                        </div>
+                        <h2 class="text-4xl font-display font-bold mb-3 tracking-tighter" x-text="selectedItem?.name"></h2>
+                        <span x-show="!isViewingOwnedItem" class="text-3xl font-black text-black tracking-tighter" x-text="selectedItem?.price"></span>
+                    </div>
+
+                    <template x-if="selectedItem?.isLocal && !isViewingOwnedItem">
+                        <div class="mb-10 p-6 bg-gray-50 rounded-[32px] border border-gray-100 flex items-center justify-between">
+                            <div><p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Pick up Location</p><p class="font-bold text-base">Ganjlik Mall, Baku</p></div>
+                            <i class="fas fa-location-dot text-red-600 text-2xl"></i>
+                        </div>
+                    </template>
+
+                    <div class="mt-auto pt-4 flex gap-5">
+                        <template x-if="isViewingOwnedItem"><div class="flex w-full gap-4"><button @click="styleOwnedItem(selectedItem)" class="flex-1 bg-black text-white py-6 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all">Style This</button><button @click="sellItem(selectedItem)" class="flex-1 border-2 border-black text-black py-6 rounded-3xl font-black text-xs uppercase tracking-[0.2em] active:scale-95 transition-all">Resell</button></div></template>
+                        <template x-if="!isViewingOwnedItem"><button @click="handleItemAction(selectedItem)" class="flex-1 bg-black text-white py-6 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl active:scale-95 transition-all"><span x-text="selectedItem?.isLocal ? 'Open Store Map' : 'Shop at ' + selectedItem?.brand"></span></button></template>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function espressoApp() {
+            // HIGH-QUALITY IMAGE DB
+            const imgIds = {
+                pants: ['1542272617-08f086303294', '1624378439575-d8705ad7ae80', '1594633312681-425c7b97ccd1', '1541099649105-f69ad21f3246', '1584370848010-d7fe6bc767ec', '1506629869134-242f2b3501a1'],
+                shoes: ['1549298916-b41d501d3772', '1608256246200-53e635b5b65f', '1560769629-975e13f0c470', '1614252235316-8c857d38b5f4', '1525966222134-fcfa99b8ae77'],
+                top: ['1596755094514-f87e34085b2c', '1521572163474-6864f9cf17ab', '1583743814966-8936f5b7be1a', '1618354691373-d851c5c3a990', '1523381210434-271e8be1f52b'],
+                acc: ['1599643478518-17488fbbcd75', '1524592094714-0f0654e20314', '1588444650733-d0767b753fc8', '1535551951406-a19932454aa0']
+            };
+            const getImg = (cat) => `https://images.unsplash.com/photo-${imgIds[cat][Math.floor(Math.random()*imgIds[cat].length)]}?q=80&w=400`;
+
+            return {
+                showSplash: true, currentView: 'auth', authMode: 'login', currentTab: 'home', isProcessing: false, step: '',
+                inputType: '', userInput: '', uploadedImage: '', targetCategory: null, detailModalOpen: false, selectedItem: null,
+                lang: 'en', wardrobeFilter: 'all', isVintageMode: false, isHyperLocal: false, stylingOwnedItem: null, isViewingOwnedItem: false,
+                touchStartX: 0, touchStartY: 0, loginData: { email: '', password: '' }, registerData: { name: '', email: '', password: '' },
+                user: { name: 'Guest', sizes: { top: 'L', bottom: '32', shoe: '43' } },
+                history: [], filteredResults: [], closetMatches: [],
+                weatherProduct: { id: 99, name: 'Wool Trench Coat', brand: 'Zara', image: 'https://images.unsplash.com/photo-1544022613-e87ca19207d8?q=80&w=400', price: '249₼', isLocal: true },
+                occasions: ['Casual', 'Date Night', 'Business', 'Night Out'], selectedOccasion: null,
+                categories: [ { id: 'top', key: 'cat_top', icon: 'fas fa-tshirt' }, { id: 'pants', key: 'cat_pants', icon: 'fas fa-columns' }, { id: 'shoes', key: 'cat_shoes', icon: 'fas fa-shoe-prints' }, { id: 'acc', key: 'cat_acc', icon: 'fas fa-hat-cowboy' } ],
+                
+                t: { en: { auth_subtitle: "The future of fashion.", sign_in: "Sign In", create_account: "Join", no_account: "New? Sign Up", has_account: "Member? Sign In", hello_user: "Hi, Style Icon", weather_tip: "Rain alert. Trench coat recommended.", snap_match: "Snap & Match", paste_link: "Link", write_prompt: "Text", recent_history: "Recent Search", wardrobe: "Wardrobe", items: "items", all: "All", cat_top: "Top", cat_pants: "Bottom", cat_shoes: "Shoes", cat_acc: "Acc", my_sizes: "Dimensions", logout: "Logout", next: "Continue", results: "Matches", ai_desc: "AI is checking 80+ inventories...", occasion_label: "Occasion", vintage_label: "Vintage Only" },
+                     az: { auth_subtitle: "Dəbin gələcəyi.", sign_in: "Daxil Ol", create_account: "Qeydiyyat", no_account: "Yeni? Qeydiyyat", has_account: "Üzvsən? Giriş", hello_user: "Salam, Stil İkonu", weather_tip: "Hava yağışlıdır. Plaş geyin.", snap_match: "Şəkil Çək", paste_link: "Link", write_prompt: "Yazı", recent_history: "Son Aktivlik", wardrobe: "Qarderob", items: "geyim", all: "Hamısı", cat_top: "Üst", cat_pants: "Şalvar", cat_shoes: "Ayaqqabı", cat_acc: "Aksesuar", my_sizes: "Ölçülərim", logout: "Çıxış", next: "Davam Et", results: "Nəticələr", ai_desc: "80+ mağaza taranır...", occasion_label: "Məkan", vintage_label: "Yalnız Vintage" } },
+
+                init() {
+                    this.allProducts = []; 
+                    ['pants', 'shoes', 'top', 'acc'].forEach(c => {
+                        for(let i=0; i<20; i++) this.allProducts.push({ id: Math.random(), category: c, name: `Street ${c}`, brand: ['Zara','Temu','Amazon','Trendyol'][i%4], price: (Math.random()*150+40).toFixed(0)+'₼', isLocal: i%2==0, image: getImg(c), isVintage: i>15, url: 'https://google.com' });
+                    });
+                    this.wardrobeItems = this.allProducts.slice(0, 12);
+                    const saved = localStorage.getItem('esp_user_v6');
+                    if(saved) { this.user = JSON.parse(saved); this.currentView = 'app'; }
+                    setTimeout(() => this.showSplash = false, 2000);
+                    this.setupNavigation();
+                },
+
+                // SWIPE LOGIC (INSTAGRAM STYLE)
+                touchStart(e) { this.touchStartX = e.changedTouches[0].screenX; this.touchStartY = e.changedTouches[0].screenY; },
+                touchEnd(e) {
+                    if (this.isProcessing || this.detailModalOpen || this.currentView === 'auth') return;
+                    let dx = this.touchStartX - e.changedTouches[0].screenX;
+                    let dy = this.touchStartY - e.changedTouches[0].screenY;
+                    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 60) {
+                        const tabs = ['home', 'wardrobe', 'profile'];
+                        let i = tabs.indexOf(this.currentTab);
+                        if (dx > 0 && i < 2) this.switchTab(tabs[i+1]);
+                        if (dx < 0 && i > 0) this.switchTab(tabs[i-1]);
+                    }
+                },
+
+                getBrandColor(b) {
+                    const c = { 'Temu': '#FF6000', 'Trendyol': '#F27A1A', 'Amazon': '#232F3E', 'Zara': '#000000' };
+                    return c[b] || '#000';
+                },
+
+                switchTab(tab) { history.pushState({ tab: tab }, '', ''); this.currentTab = tab; },
+                setupNavigation() {
+                    history.replaceState({ tab: 'home' }, '', '');
+                    window.onpopstate = (e) => {
+                        if(this.detailModalOpen) { this.detailModalOpen = false; return; }
+                        if(this.isProcessing) { this.cancelFlow(); return; }
+                        this.currentTab = e.state?.tab || 'home';
+                    };
+                },
+
+                attemptRegister() {
+                    if(!this.registerData.email) return;
+                    const u = { name: this.registerData.name || 'User', email: this.registerData.email, sizes: { top:'M', bottom:'32', shoe:'42' } };
+                    localStorage.setItem('esp_db_v6', JSON.stringify({ ...u, password: this.registerData.password }));
+                    localStorage.setItem('esp_user_v6', JSON.stringify(u));
+                    this.user = u; this.currentView = 'app';
+                },
+                attemptLogin() {
+                    const db = JSON.parse(localStorage.getItem('esp_db_v6') || '{}');
+                    if(db.email === this.loginData.email && db.password === this.loginData.password) {
+                        this.user = db; localStorage.setItem('esp_user_v6', JSON.stringify(db)); this.currentView = 'app';
+                    } else { alert("User not found."); }
+                },
+                logout() { localStorage.removeItem('esp_user_v6'); this.currentView = 'auth'; },
+
+                startFlow(type) { this.inputType = type; this.isProcessing = true; this.step = type === 'camera' ? 'category' : 'input'; history.pushState({ processing: true }, '', ''); },
+                cancelFlow() { this.isProcessing = false; this.step = ''; this.stylingOwnedItem = null; },
+                selectTargetCategory(id) {
+                    this.targetCategory = id; this.step = 'loading';
+                    setTimeout(() => {
+                        let base = this.allProducts;
+                        if(this.isVintageMode) base = base.filter(p => p.isVintage);
+                        this.filteredResults = base.filter(p => p.category === id).slice(0, 8);
+                        this.closetMatches = this.wardrobeItems.filter(p => p.category === id).slice(0, 1);
+                        this.step = 'results';
+                        this.history.unshift({ id: Date.now(), name: this.stylingOwnedItem ? 'Match: '+this.stylingOwnedItem.name : 'Style Search', date: 'Just now', image: this.uploadedImage || getImg(id) });
+                    }, 2000);
+                },
+                handleImageUpload(e) { const f = e.target.files[0]; if(f) { let r = new FileReader(); r.onload = (ev) => { this.uploadedImage = ev.target.result; this.startFlow('camera'); }; r.readAsDataURL(f); } },
+                openDetail(item, owned = false) { this.selectedItem = item; this.isViewingOwnedItem = owned; this.detailModalOpen = true; history.pushState({ modal: true }, '', ''); },
+                handleItemAction(item) { if(item.isLocal) alert("Opening Map..."); else window.open(item.url, '_blank'); },
+                loadFromHistory(item) { this.isProcessing = true; this.uploadedImage = item.image; this.selectTargetCategory('pants'); },
+                getDate() { return new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' }); },
+                get filteredWardrobe() { return this.wardrobeFilter === 'all' ? this.wardrobeItems : this.wardrobeItems.filter(i => i.category === this.wardrobeFilter); },
+                changeSize(t) { const s = ['S','M','L','XL']; this.user.sizes[t] = s[(s.indexOf(this.user.sizes[t])+1)%s.length]; },
+                styleOwnedItem(item) { this.detailModalOpen = false; setTimeout(() => { this.stylingOwnedItem = item; this.uploadedImage = item.image; this.isProcessing = true; this.step = 'input'; }, 300); },
+                sellItem(item) { alert("Listed!"); this.detailModalOpen = false; },
+                vibeCheck() { alert("Link copied!"); },
+                setLang(l) { this.lang = l; }
+            }
+        }
+    </script>
+</body>
+</html>
