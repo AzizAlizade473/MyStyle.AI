@@ -1,53 +1,40 @@
-from django.db import transaction
 from rest_framework import serializers
 from .models import ImageUpload
+from .utils import extract_image_url_from_temulink, download_and_process_image # <--- Import utils
 
 class ImageUploadSerializer(serializers.ModelSerializer):
-
-    MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5 MB
-    ALLOWED_CONTENT_TYPES = ("image/jpeg", "image/png", "image/webp")
-
-    image = serializers.ImageField(write_only=True)
-    embedding = serializers.ReadOnlyField()
-    processed = serializers.BooleanField(read_only=True)
-    created_at = serializers.DateTimeField(read_only=True)
+    image_url = serializers.URLField(write_only=True, required=False)
 
     class Meta:
         model = ImageUpload
-
         fields = [
-            "id", "image", "embedding", "processed", "created_at",
-            "source", "market_name", "market_location"]
+            "id", "image", "image_url", "embedding", "processed", 
+            "created_at", "source", "market_name", "market_location"
+        ]
         read_only_fields = ["id", "embedding", "processed", "created_at"]
+        extra_kwargs = {'image': {'required': False}}
 
-    def validate_image(self, value):
-        content_type = getattr(value, "content_type", None)
-        if content_type and content_type.lower() not in self.ALLOWED_CONTENT_TYPES:
-            raise serializers.ValidationError(
-                f"Unsupported image type: {content_type}. "
-                f"Allowed types: {', '.join(self.ALLOWED_CONTENT_TYPES)}"
-            )
-
-        if value.size > self.MAX_UPLOAD_SIZE:
-            raise serializers.ValidationError(
-                f"Image size is too large. Max allowed is {self.MAX_UPLOAD_SIZE // (1024*1024)} MB."
-            )
-
-        return value
+    def validate(self, data):
+        if not data.get('image') and not data.get('image_url'):
+            raise serializers.ValidationError("You must provide either an Image File or an Image URL.")
+        return data
 
     def create(self, validated_data):
-        # 1. Save to Database first
-        instance = super().create(validated_data)
+        raw_url = validated_data.pop('image_url', None)
 
-        def _enqueue_task():
-            try:
-                from .tasks import process_image_task
-                process_image_task.delay(instance.id)
-            except ImportError:
-                print("Warning: tasks.py not found or circular import failed.")
-            except Exception as e:
-                print(f"Error triggering task: {e}")
+        if raw_url:
+            # 1. Check if it's a Temu Link and extract the real image
+            extracted_url = extract_image_url_from_temulink(raw_url)
+            
+            # If extracted_url is found, use it. Otherwise, use the raw_url (maybe it's a direct link)
+            target_url = extracted_url if extracted_url else raw_url
 
-        transaction.on_commit(_enqueue_task)
-        
-        return instance
+            # 2. Download and Convert to JPG (Using our new util)
+            processed_file = download_and_process_image(target_url)
+
+            if not processed_file:
+                raise serializers.ValidationError({"image_url": "Failed to download or process the image. Ensure the link is valid."})
+
+            validated_data['image'] = processed_file
+
+        return super().create(validated_data)

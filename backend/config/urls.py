@@ -12,6 +12,6 @@ urlpatterns = [
     # Frontend Pages
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
     path('login/', TemplateView.as_view(template_name='login.html'), name='login'),
-
+    path('flutter/', TemplateView.as_view(template_name='flutter.html'), name='flutter'),
     path('register/', TemplateView.as_view(template_name='register.html'), name='register'),
 ]

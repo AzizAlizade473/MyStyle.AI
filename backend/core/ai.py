@@ -1,7 +1,8 @@
 import torch
 import clip
 from PIL import Image
-import numpy as np
+from .models import ImageUpload
+from celery import shared_task
 
 # For the CLIP to choose from
 TAXONOMY = {
@@ -31,6 +32,41 @@ def get_model():
         _MODEL, _PREPROCESS = clip.load("ViT-B/32", device=_DEVICE)
         _MODEL.eval() # Set to evaluation mode (faster, no training)
     return _MODEL, _PREPROCESS
+
+@shared_task
+def generate_image_embedding(image_id):
+    """
+    Finds the image by ID, generates its AI embedding, and saves it.
+    """
+    try:
+        # 1. Get the Image Object from DB
+        instance = ImageUpload.objects.get(id=image_id)
+        
+        # 2. Load Model
+        model, preprocess = get_model()
+
+        # 3. Process Image
+        # We open the image file directly from the disk
+        image_input = preprocess(Image.open(instance.image.path)).unsqueeze(0).to(_DEVICE)
+
+        # 4. Generate Embedding (The "Thinking" Part)
+        with torch.no_grad():
+            image_features = model.encode_image(image_input)
+
+        # 5. Convert to Python List and Save
+        # .cpu().numpy() is needed to move data from GPU/Tensor to standard format
+        embedding_list = image_features.squeeze().cpu().numpy().tolist()
+        
+        instance.embedding = embedding_list
+        instance.processed = True
+        instance.save()
+        
+        return f"Success: Embedding generated for Image {image_id}"
+
+    except ImageUpload.DoesNotExist:
+        return f"Error: Image {image_id} not found."
+    except Exception as e:
+        return f"Error processing image {image_id}: {str(e)}"
 
 def get_image_embedding(image_file):
     """

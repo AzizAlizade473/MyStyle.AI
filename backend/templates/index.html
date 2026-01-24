@@ -5,138 +5,192 @@
 {% block content %}
     <h1>Inventory Dashboard</h1>
 
-    <div class="section" id="uploadSection">
+    <div class="section" id="uploadSection" style="margin-bottom: 40px; padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
         <h2>1. Upload Inventory</h2>
-        <input type="file" id="fileInput" accept="image/*">
-        <select id="sourceInput" onchange="toggleLocalFields()">
-             <option value="AMAZON">Amazon</option>
-             </select>
-        <button onclick="uploadImage()">Upload</button>
-        <div id="uploadStatus"></div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="margin-right: 15px;">
+                <input type="radio" name="uploadMode" value="file" checked onclick="toggleUploadMode()"> Upload File
+            </label>
+            <label>
+                <input type="radio" name="uploadMode" value="url" onclick="toggleUploadMode()"> Paste URL
+            </label>
+        </div>
+
+        <div id="fileInputDiv" style="margin-bottom: 10px;">
+            <label>Select Image:</label><br>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div id="urlInputDiv" style="margin-bottom: 10px; display: none;">
+            <label>Paste Image Link:</label><br>
+            <input type="url" id="urlInput" placeholder="https://temu.com/..." style="width: 100%; padding: 8px;">
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label>Item Source:</label><br>
+            <select id="sourceInput" onchange="toggleLocalFields()" style="padding: 5px;">
+                <option value="AMAZON">Amazon</option>
+                <option value="TEMU">Temu</option>
+                <option value="TRENDYOL">Trendyol</option>
+                <option value="LOCAL">Local Market</option>
+            </select>
+        </div>
+
+        <div id="localFields" style="display: none; border-left: 3px solid #007bff; padding-left: 10px; margin-bottom: 10px;">
+            <p style="margin: 5px 0; font-size: 0.9em; color: #666;">Local Seller Details:</p>
+            <input type="text" id="marketName" placeholder="Market Name" style="margin-bottom: 5px; width: 100%; padding: 5px;"><br>
+            <input type="text" id="marketLocation" placeholder="Location/Address" style="width: 100%; padding: 5px;">
+        </div>
+
+        <button onclick="uploadImage()" style="padding: 10px 20px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 4px;">Process Item</button>
+        <div id="uploadStatus" style="margin-top: 10px; font-weight: bold;"></div>
     </div>
 
-    <div class="section">
-        <h2>2. Search</h2>
-        <input type="text" id="searchInput" placeholder="Search...">
-        <button onclick="searchImages()">Search</button>
-        <div id="searchResults"></div>
+    <div class="section" style="padding: 20px; border: 1px solid #ddd; border-radius: 8px;">
+        <h2>2. AI Search</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="searchInput" placeholder="Search for 'Red Dress', 'Winter Coat'..." style="flex-grow: 1; padding: 10px;">
+            <button onclick="searchImages()" style="padding: 10px 20px; cursor: pointer;">Text Search</button>
+        </div>
+        
+        <div id="searchResults" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px;">
+            </div>
     </div>
 
     <script>
-        token = localStorage.getItem('userToken');
-
+        // --- 1. AUTH CHECK ---
+        const token = localStorage.getItem('userToken');
         if (!token) {
-            document.querySelector('.section').innerHTML = `
-            <h2>1. Upload Inventory</h2>
-            <p>You must be logged in to access this page.</p>
-            <a href="login.html">Go to Login</a>
-            `;
+            window.location.href = "{% url 'login' %}";
         }
-        // --- TOGGLE LOGIC ---
+
+        // --- 2. TOGGLE UI MODES ---
         function toggleLocalFields() {
             const source = document.getElementById('sourceInput').value;
-            const localDiv = document.getElementById('localFields');
-            // Show div only if 'LOCAL' is selected
-            localDiv.style.display = (source === 'LOCAL') ? 'block' : 'none';
+            document.getElementById('localFields').style.display = (source === 'LOCAL') ? 'block' : 'none';
         }
 
-        // --- UPLOAD LOGIC ---
+        function toggleUploadMode() {
+            const mode = document.querySelector('input[name="uploadMode"]:checked').value;
+            document.getElementById('fileInputDiv').style.display = (mode === 'file') ? 'block' : 'none';
+            document.getElementById('urlInputDiv').style.display = (mode === 'url') ? 'block' : 'none';
+        }
+
+        // --- 3. UPLOAD FUNCTION ---
         async function uploadImage() {
+            const statusDiv = document.getElementById('uploadStatus');
             const fileInput = document.getElementById('fileInput');
+            const urlInput = document.getElementById('urlInput');
             const sourceInput = document.getElementById('sourceInput');
             const marketName = document.getElementById('marketName');
             const marketLocation = document.getElementById('marketLocation');
-            const statusDiv = document.getElementById('uploadStatus');
-            
-            if (fileInput.files.length === 0) {
-                statusDiv.innerText = "Please select a file first.";
-                return;
-            }
+            const mode = document.querySelector('input[name="uploadMode"]:checked').value;
 
             const formData = new FormData();
-            formData.append('image', fileInput.files[0]);
             
-            // 1. Add Source
-            formData.append('source', sourceInput.value);
+            // Handle File vs URL
+            if (mode === 'file') {
+                if (fileInput.files.length === 0) {
+                    statusDiv.innerText = "Please select a file."; return;
+                }
+                formData.append('image', fileInput.files[0]);
+            } else {
+                if (!urlInput.value) {
+                    statusDiv.innerText = "Please paste a URL."; return;
+                }
+                formData.append('image_url', urlInput.value);
+            }
 
-            // 2. Add Local Details (only if Local is selected)
+            formData.append('source', sourceInput.value);
             if (sourceInput.value === 'LOCAL') {
                 formData.append('market_name', marketName.value);
                 formData.append('market_location', marketLocation.value);
             }
 
-            statusDiv.innerHTML = "Uploading...";
+            statusDiv.innerHTML = "Processing...";
 
             try {
-                const response = await fetch('/api/core/upload/', { // Note: Check if your URL is /api/upload/ or /api/core/upload/ based on previous steps
+                const response = await fetch('/api/core/upload/', {
                     method: 'POST',
-                    headers: { 'Authorization': `Token ${token}` },
+                    headers: { 'Authorization': 'Token ' + token },
                     body: formData
                 });
-                
                 const data = await response.json();
 
                 if (response.ok) {
-                    statusDiv.innerHTML = `<span class="success">Saved! (ID: ${data.id})</span><br>Source: ${data.source}`;
+                    statusDiv.innerHTML = `<span style="color:green">Success! Image ID: ${data.id}</span>`;
+                    // Clear inputs
+                    fileInput.value = "";
+                    urlInput.value = "";
                 } else {
-                    statusDiv.innerHTML = `<span class="error">Error: ${JSON.stringify(data)}</span>`;
+                    statusDiv.innerHTML = `<span style="color:red">Error: ${JSON.stringify(data)}</span>`;
                 }
             } catch (error) {
                 console.error(error);
-                statusDiv.innerHTML = `<span class="error">Network Error</span>`;
+                statusDiv.innerHTML = `<span style="color:red">Network Error</span>`;
             }
         }
 
-        // --- SEARCH LOGIC ---
+        // --- 4. SEARCH FUNCTION (TEXT) ---
         async function searchImages() {
             const query = document.getElementById('searchInput').value;
-            const resultsDiv = document.getElementById('searchResults');
-            const token = localStorage.getItem('userToken'); // <--- Get the Token
-
             if (!query) return;
+            fetchResults(`/api/core/search/?q=${encodeURIComponent(query)}`);
+        }
 
-            resultsDiv.innerHTML = "Searching...";
+        // --- 5. SEARCH FUNCTION (VISUAL / SIMILAR) ---
+        async function searchSimilar(id) {
+            // This calls the backend asking for items that look like Image ID
+            document.getElementById('searchInput').value = `Similar to Item #${id}`;
+            fetchResults(`/api/core/search/?similar_to=${id}`);
+        }
+
+        // --- SHARED FETCH LOGIC ---
+        async function fetchResults(url) {
+            const resultsDiv = document.getElementById('searchResults');
+            resultsDiv.innerHTML = "<p>Searching...</p>";
 
             try {
-                // ADD HEADERS HERE
-                const response = await fetch(`/api/core/search/?q=${encodeURIComponent(query)}`, {
+                const response = await fetch(url, {
                     method: 'GET',
-                    headers: {
-                        'Authorization': 'Token ' + token, // <--- Send the Key
+                    headers: { 
+                        'Authorization': 'Token ' + token,
                         'Content-Type': 'application/json'
                     }
                 });
-                
                 const data = await response.json();
 
                 if (response.ok) {
                     resultsDiv.innerHTML = "";
                     if (data.length === 0) {
-                        resultsDiv.innerHTML = "No matches found.";
+                        resultsDiv.innerHTML = "<p>No matches found.</p>";
                         return;
                     }
 
+                    // Render Cards
                     data.forEach(item => {
-                        const div = document.createElement('div');
-                        div.className = 'result-item';
-                        div.innerHTML = `
-                            <img src="${item.url}" alt="Result">
-                            <div>
-                                <strong>Score: ${item.score}</strong><br>
-                                ID: ${item.id}
+                        const card = document.createElement('div');
+                        card.style = "border: 1px solid #ccc; border-radius: 8px; overflow: hidden; padding-bottom: 10px;";
+                        card.innerHTML = `
+                            <img src="${item.image}" alt="Item" style="width: 100%; height: 200px; object-fit: cover;">
+                            <div style="padding: 10px;">
+                                <strong>${item.source}</strong>
+                                <p style="font-size: 0.9em; color: #555;">${item.market_name || ''}</p>
+                                <button onclick="searchSimilar(${item.id})" style="width: 100%; padding: 5px; margin-top: 5px; cursor: pointer; background: #eee; border: 1px solid #ccc;">
+                                    🔍 Find Similar
+                                </button>
                             </div>
                         `;
-                        resultsDiv.appendChild(div);
+                        resultsDiv.appendChild(card);
                     });
                 } else {
-                    resultsDiv.innerHTML = `<span class="error">Error: ${JSON.stringify(data)}</span>`;
+                    resultsDiv.innerHTML = `<span style="color:red">Error: ${JSON.stringify(data)}</span>`;
                 }
             } catch (error) {
                 console.error(error);
-                resultsDiv.innerHTML = `<span class="error">Network Error</span>`;
+                resultsDiv.innerHTML = `<span style="color:red">Network Error</span>`;
             }
         }
     </script>
-</body>
-</html>
 {% endblock %}

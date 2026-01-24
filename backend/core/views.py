@@ -7,39 +7,63 @@ from pgvector.django import CosineDistance
 from rest_framework.authentication import TokenAuthentication
 
 from .models import ImageUpload
-from .ai import get_text_embedding
+from .ai import get_text_embedding, get_model
+import clip
+import torch
 
 # backend/core/views.py
 
 @api_view(['GET'])
-@authentication_classes([TokenAuthentication]) # <--- STRICT MODE: Ignore Cookies
-@permission_classes([IsAuthenticated])         # <--- User must be logged in
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def search_images(request):
-    query = request.GET.get('q', '')
-    if not query:
-        return Response({"error": "No query provided"}, status=400)
+    """
+    Search by Text OR by Image ID (Find Similar).
+    """
+    query_text = request.GET.get('q', '')      # Text search: ?q=red dress
+    similar_to_id = request.GET.get('similar_to', '') # Visual search: ?similar_to=15
 
-    # 1. Convert Text -> Vector
-    query_vector = get_text_embedding(query)
-    if not query_vector:
-        return Response({"error": "AI Model failed to process text"}, status=500)
+    if not query_text and not similar_to_id:
+        return Response({"error": "Please provide 'q' (text) or 'similar_to' (image_id)"}, status=400)
 
-    # 2. Database Search (FIXED)
-    # We add .filter(embedding__isnull=False) to ignore unprocessed images
-    results = ImageUpload.objects.filter(embedding__isnull=False).annotate(
-        distance=CosineDistance('embedding', query_vector)
-    ).order_by('distance')[:5]
+    # --- MODE A: VISUAL SEARCH (Find similar to existing image) ---
+    if similar_to_id:
+        try:
+            target_image = ImageUpload.objects.get(id=similar_to_id)
+            if not target_image.embedding.all():
+                return Response({"error": "Target image is not processed yet."}, status=400)
+            
+            search_vector = target_image.embedding
+        except ImageUpload.DoesNotExist:
+            return Response({"error": "Image not found"}, status=404)
 
-    # 3. Serialize
-    data = [
-        {
-            "id": img.id,
-            "url": request.build_absolute_uri(img.image.url),
-            "score": f"{1 - img.distance:.2f}" 
-        } 
-        for img in results
-    ]
-    
+    # --- MODE B: TEXT SEARCH (Text -> Embedding) ---
+    else:
+        model, _ = get_model()
+        text_inputs = clip.tokenize([query_text]).to("cpu")
+        
+        with torch.no_grad():
+            text_features = model.encode_text(text_inputs)
+            
+        search_vector = text_features.squeeze().cpu().numpy().tolist()
+
+    # --- PERFORM DATABASE SEARCH ---
+    # We use CosineDistance.
+    # Note: pgvector sorts by Distance (Lower is better/closer).
+    results = ImageUpload.objects.order_by(
+        CosineDistance('embedding', search_vector)
+    )[:10] # Get top 10
+
+    # formatting response
+    data = []
+    for item in results:
+        data.append({
+            "id": item.id,
+            "image": item.image.url if item.image else "",
+            "market_name": item.market_name,
+            "source": item.source
+        })
+
     return Response(data)
 
 class ImageUploadView(generics.CreateAPIView):

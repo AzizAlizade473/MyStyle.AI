@@ -1,0 +1,599 @@
+{% extends 'base(desktop).html' %}
+
+{% block content %}
+    <!-- I've updated currentView to 'auth' below so you start on the new page -->
+    <div x-data="espressoApp()" x-init="init()" class="flex h-full w-full" x-cloak>
+
+        <!-- ================= 0. SPLASH ================= -->
+        <div x-show="showSplash" class="fixed inset-0 z-[500] bg-white flex flex-col items-center justify-center">
+            <div class="w-32 h-32 border-4 border-black rounded-full flex items-center justify-center mb-6 animate-pulse">
+                <span class="text-6xl font-bold italic">E</span>
+            </div>
+            <h1 class="text-4xl font-bold tracking-[0.5em] uppercase">Espresso</h1>
+        </div>
+
+        <!-- ================= 0.5 AUTH PAGE (NEW ADDITION) ================= -->
+        <div x-show="currentView === 'auth'" class="w-full h-full flex animate-fade-in">
+            <!-- Left: Brand Visual -->
+            <div class="w-5/12 bg-black relative flex flex-col justify-between p-16 text-white overflow-hidden">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1000')] bg-cover bg-center opacity-40 grayscale mix-blend-screen"></div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 border-2 border-white rounded-full flex items-center justify-center mb-6">
+                        <span class="text-3xl font-bold italic">E</span>
+                    </div>
+                </div>
+                <div class="relative z-10">
+                    <h1 class="text-6xl font-bold tracking-tighter leading-tight mb-6">Style,<br>Simplified.</h1>
+                    <p class="text-gray-400 text-sm max-w-xs leading-relaxed">Your personalized AI stylist. Digitalize your wardrobe, find matches from local boutiques, and elevate your daily look.</p>
+                </div>
+            </div>
+
+            <!-- Right: Login Form -->
+            <div class="w-7/12 bg-white flex flex-col justify-center items-center relative">
+                <!-- Lang Switcher Top Right -->
+                <div class="absolute top-10 right-10 flex gap-4">
+                    <button @click="lang='az'" :class="lang==='az' ? 'text-black border-b-2 border-black' : 'text-gray-300'" class="text-xs font-black uppercase pb-1">AZ</button>
+                    <button @click="lang='en'" :class="lang==='en' ? 'text-black border-b-2 border-black' : 'text-gray-300'" class="text-xs font-black uppercase pb-1">EN</button>
+                </div>
+
+                <div class="w-full max-w-md px-10">
+                    <div class="mb-10">
+                        <h2 class="text-4xl font-bold tracking-tighter mb-2" x-text="authMode === 'login' ? t[lang].sign_in : t[lang].create_account"></h2>
+                        <p class="text-gray-400 font-medium" x-text="t[lang].auth_subtitle"></p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Name Field (Signup Only) -->
+                        <div x-show="authMode === 'signup'" class="animate-fade-in">
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Full Name</label>
+                            <div class="relative">
+                                <i class="fas fa-user absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                                <input type="text" placeholder="Aziz Alizade" class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-sm focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Email</label>
+                            <div class="relative">
+                                <i class="fas fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                                <input type="email" placeholder="hello@espresso.ai" class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-sm focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div>
+                            <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Password</label>
+                            <div class="relative">
+                                <i class="fas fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
+                                <input type="password" placeholder="••••••••" class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-sm focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <button @click="login()" class="w-full bg-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] mt-10 shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
+                        <span x-text="authMode === 'login' ? 'Enter Espresso' : 'Create Account'"></span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+
+                    <!-- Toggle Mode -->
+                    <div class="mt-8 text-center">
+                        <button @click="authMode = (authMode === 'login' ? 'signup' : 'login')" class="text-xs font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-widest">
+                            <span x-text="authMode === 'login' ? t[lang].no_account : t[lang].has_account"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= 1. SIDEBAR ================= -->
+        <aside x-show="currentView !== 'auth'" class="w-64 border-r border-gray-100 flex flex-col p-6 shrink-0 bg-white">
+            <div class="mb-12">
+                <h1 class="text-2xl font-bold tracking-tighter italic">Espresso.</h1>
+            </div>
+
+            <nav class="flex-1">
+                <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold">
+                    <i class="fas fa-home w-5"></i> Dashboard
+                </button>
+                <button @click="currentTab = 'wardrobe'" :class="currentTab === 'wardrobe' ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
+                    <i class="fas fa-layer-group w-5"></i> My Closet
+                </button>
+                <button @click="currentTab = 'profile'" :class="currentTab === 'profile' ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
+                    <i class="fas fa-user-circle w-5"></i> Profile
+                </button>
+            </nav>
+
+            <div class="mt-auto border-t border-gray-100 pt-6">
+                <div class="flex items-center gap-3 mb-6 px-2">
+                    <div class="w-10 h-10 bg-black rounded-full text-white flex items-center justify-center font-bold" x-text="user.name.charAt(0)"></div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="font-bold text-sm truncate" x-text="user.name"></p>
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Premium Member</p>
+                    </div>
+                </div>
+                <button @click="logout()" class="w-full text-left text-red-500 text-xs font-bold uppercase px-4 py-2 hover:bg-red-50 rounded-lg">Logout</button>
+            </div>
+        </aside>
+
+        <!-- ================= 2. MAIN CONTENT AREA ================= -->
+        <main x-show="currentView !== 'auth'" class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden">
+            
+            <!-- Hidden Input for Camera Action -->
+            <input type="file" x-ref="cameraInput" class="hidden" accept="image/*" @change="handleImageUpload">
+
+            <!-- TOP BAR -->
+            <header class="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-10 shrink-0">
+                <div class="flex-1 max-w-xl">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" placeholder="Search brands, styles, or occasions..." class="w-full bg-gray-50 border-transparent rounded-full pl-12 pr-4 py-2 text-sm focus:bg-white focus:ring-1 focus:ring-black outline-none transition-all">
+                    </div>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="flex gap-2 text-[10px] font-bold">
+                        <button @click="lang='az'" :class="lang==='az' ? 'text-black border-b-2 border-black' : 'text-gray-400'">AZ</button>
+                        <button @click="lang='en'" :class="lang==='en' ? 'text-black border-b-2 border-black' : 'text-gray-400'">EN</button>
+                    </div>
+                    <div class="w-px h-6 bg-gray-200"></div>
+                    <button class="relative text-gray-400 hover:text-black">
+                        <i class="far fa-bell text-xl"></i>
+                        <div class="absolute -top-1 -right-1 w-2 h-2 bg-black rounded-full border-2 border-white"></div>
+                    </button>
+                </div>
+            </header>
+
+            <!-- VIEW: HOME (DESKTOP GRID) -->
+            <div x-show="currentTab === 'home' && !isProcessing" class="flex-1 overflow-y-auto p-10">
+                
+                <div class="flex gap-8 mb-12">
+                    <!-- Weather Card (WIDE) -->
+                    <div @click="openDetail(weatherProduct)" class="flex-1 bg-black text-white p-8 rounded-[32px] flex items-center justify-between group cursor-pointer relative overflow-hidden shadow-xl">
+                        <div class="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                        <div class="flex items-center gap-8 relative z-10">
+                            <div class="bg-white/10 backdrop-blur-md p-6 rounded-3xl"><i class="fas fa-cloud-showers-heavy text-5xl"></i></div>
+                            <div>
+                                <h3 class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">Morning Update • Baku, AZ</h3>
+                                <p class="text-3xl font-bold leading-tight" x-text="t[lang].weather_tip"></p>
+                                <button class="mt-4 bg-white text-black px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 transition-transform">Discover Look</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats / Mini Card -->
+                    <!-- Left: How to Use (Desktop Onboarding Widget) -->
+                    <div class="w-80 bg-white border border-gray-100 rounded-[32px] p-8 flex flex-col shadow-sm">
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="w-2 h-2 rounded-full bg-black"></div>
+                            <p class="text-[10px] font-black text-black uppercase tracking-[0.2em]">How Espresso Works</p>
+                        </div>
+
+                        <div class="space-y-6">
+                            <!-- Step 1 -->
+                            <div class="flex gap-4">
+                                <span class="text-xs font-black text-gray-200 uppercase tracking-tighter">01</span>
+                                <div>
+                                    <h5 class="text-sm font-bold leading-none mb-1 uppercase tracking-tight">Input</h5>
+                                    <p class="text-[11px] text-gray-400 leading-tight">Snap a photo, paste a link, or write a style prompt.</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="flex gap-4">
+                                <span class="text-xs font-black text-gray-200 uppercase tracking-tighter">02</span>
+                                <div>
+                                    <h5 class="text-sm font-bold leading-none mb-1 uppercase tracking-tight">Select</h5>
+                                    <p class="text-[11px] text-gray-400 leading-tight">Choose what you want to match (e.g., matching shoes).</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="flex gap-4">
+                                <span class="text-xs font-black text-gray-200 uppercase tracking-tighter">03</span>
+                                <div>
+                                    <h5 class="text-sm font-bold leading-none mb-1 uppercase tracking-tight">Style</h5>
+                                    <p class="text-[11px] text-gray-400 leading-tight">AI matches your closet items or finds new pieces nearby.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Hint -->
+                        <div class="mt-auto pt-6 border-t border-gray-50">
+                            <div class="flex items-center gap-2 text-green-600">
+                                <i class="fas fa-magic text-[10px]"></i>
+                                <span class="text-[10px] font-bold uppercase tracking-widest">AI Ready to style</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Grid -->
+                <div class="grid grid-cols-3 gap-6 mb-12">
+                    <div @click="$refs.cameraInput.click()" class="bg-white border border-gray-100 p-8 rounded-[32px] flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-black transition-all shadow-sm active:scale-[0.98]">
+                        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-2xl text-black"><i class="fas fa-camera"></i></div>
+                        <div class="text-center">
+                            <h4 class="font-bold text-lg uppercase tracking-tighter" x-text="t[lang].snap_match"></h4>
+                            <p class="text-gray-400 text-xs mt-1" x-text="t[lang].snap_desc"></p>
+                        </div>
+                    </div>
+                    <div @click="startFlow('link')" class="bg-white border border-gray-100 p-8 rounded-[32px] flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-black transition-all shadow-sm active:scale-[0.98]">
+                        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-2xl text-blue-500"><i class="fas fa-link"></i></div>
+                        <div class="text-center">
+                            <h4 class="font-bold text-lg uppercase tracking-tighter" x-text="t[lang].paste_link"></h4>
+                            <p class="text-gray-400 text-xs mt-1">Direct match from URL</p>
+                        </div>
+                    </div>
+                    <div @click="startFlow('text')" class="bg-white border border-gray-100 p-8 rounded-[32px] flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-black transition-all shadow-sm active:scale-[0.98]">
+                        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-2xl text-amber-500"><i class="fas fa-keyboard"></i></div>
+                        <div class="text-center">
+                            <h4 class="font-bold text-lg uppercase tracking-tighter" x-text="t[lang].write_prompt"></h4>
+                            <p class="text-gray-400 text-xs mt-1">Describe what you need</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Horizontal -->
+                <div class="flex justify-between items-end mb-6">
+                    <h3 class="font-bold text-xl tracking-tight" x-text="t[lang].recent_history"></h3>
+                    <button class="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-black">Delete All</button>
+                </div>
+                <div class="flex gap-4 overflow-x-auto hide-scroll pb-10">
+                    <template x-for="item in history">
+                        <div @click="loadFromHistory(item)" class="w-64 shrink-0 bg-white p-4 rounded-3xl border border-gray-100 cursor-pointer hover:border-black transition-all group">
+                            <div class="aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden mb-4 relative">
+                                <img :src="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest shadow-sm">Look #1</div>
+                            </div>
+                            <p class="font-bold text-sm" x-text="item.name"></p>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase mt-1" x-text="item.date"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- VIEW: WARDROBE (WIDE GRID) -->
+            <div x-show="currentTab === 'wardrobe'" class="flex-1 overflow-y-auto p-10 bg-white">
+                <div class="flex justify-between items-center mb-10">
+                    <div>
+                        <h2 class="text-4xl font-bold tracking-tighter" x-text="t[lang].wardrobe"></h2>
+                        <p class="text-gray-400 mt-1" x-text="wardrobeItems.length + ' pieces in your collection'"></p>
+                    </div>
+                    <button @click="$refs.cameraInput.click()" class="bg-black text-white px-8 py-3 rounded-full font-bold text-sm uppercase tracking-widest shadow-xl">Add New Piece</button>
+                </div>
+                
+                <div class="flex gap-8 overflow-x-auto hide-scroll mb-10 border-b border-gray-50 pb-2">
+                    <template x-for="filter in ['all', 'top', 'pants', 'shoes']">
+                        <button @click="wardrobeFilter = filter" class="text-xs font-black uppercase tracking-widest pb-4 transition-all relative" :class="wardrobeFilter === filter ? 'text-black' : 'text-gray-300'">
+                            <span x-text="filter"></span>
+                            <div x-show="wardrobeFilter === filter" class="absolute bottom-0 left-0 right-0 h-1 bg-black rounded-full"></div>
+                        </button>
+                    </template>
+                </div>
+
+                <div class="grid grid-cols-4 lg:grid-cols-5 gap-6 pb-20">
+                    <template x-for="item in filteredWardrobe" :key="item.id">
+                        <div @click="openDetail(item, true)" class="group cursor-pointer">
+                            <div class="aspect-[3/4] bg-gray-50 mb-3 overflow-hidden rounded-[20px] relative border border-gray-100 shadow-sm">
+                                <img :src="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                            </div>
+                            <p class="font-bold text-sm tracking-tight" x-text="item.name"></p>
+                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-1" x-text="item.brand"></p>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- VIEW: PROFILE (WIDE) -->
+            <div x-show="currentTab === 'profile'" class="flex-1 overflow-y-auto p-10 bg-white">
+                <div class="max-w-4xl">
+                    <h2 class="text-4xl font-bold tracking-tighter mb-12">Account Settings</h2>
+                    
+                    <div class="grid grid-cols-2 gap-12">
+                        <div class="space-y-12">
+                            <div>
+                                <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6">Visual Identity</h3>
+                                <div class="flex items-center gap-6">
+                                    <div class="w-24 h-24 rounded-full bg-black flex items-center justify-center text-4xl font-bold text-white shadow-2xl" x-text="user.name.charAt(0)"></div>
+                                    <div>
+                                        <h4 class="text-2xl font-bold" x-text="user.name"></h4>
+                                        <p class="text-gray-400">Verified Style Icon • Baku, AZ</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6" x-text="t[lang].my_sizes"></h3>
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div @click="changeSize('top')" class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
+                                        <p class="text-[10px] font-black text-gray-400 mb-1">TOPS</p>
+                                        <p class="font-bold text-2xl" x-text="user.sizes.top"></p>
+                                    </div>
+                                    <div @click="changeSize('bottom')" class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
+                                        <p class="text-[10px] font-black text-gray-400 mb-1">BOTTOMS</p>
+                                        <p class="font-bold text-2xl" x-text="user.sizes.bottom"></p>
+                                    </div>
+                                    <div @click="changeSize('shoe')" class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
+                                        <p class="text-[10px] font-black text-gray-400 mb-1">SHOES</p>
+                                        <p class="font-bold text-2xl" x-text="user.sizes.shoe"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-[40px] p-10 border border-gray-100">
+                             <h3 class="text-lg font-bold mb-6">Preferences</h3>
+                             <div class="space-y-6">
+                                <div class="flex justify-between items-center py-4 border-b border-gray-200">
+                                    <span class="font-bold text-sm">System Language</span>
+                                    <div class="flex gap-4">
+                                        <button @click="setLang('az')" class="text-xs font-black uppercase" :class="lang==='az' ? 'text-black' : 'text-gray-300'">AZ</button>
+                                        <button @click="setLang('en')" class="text-xs font-black uppercase" :class="lang==='en' ? 'text-black' : 'text-gray-300'">EN</button>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center py-4 border-b border-gray-200">
+                                    <span class="font-bold text-sm">Currency</span>
+                                    <span class="text-xs font-black text-black">AZN (₼)</span>
+                                </div>
+                                <button @click="logout()" class="w-full text-center text-red-500 font-black text-xs uppercase tracking-widest pt-8">Log out of Espresso</button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: PROCESSING (WIDE) -->
+            <div x-show="isProcessing" class="absolute inset-0 z-[100] bg-white flex flex-col h-full overflow-hidden animate-fade-in">
+                
+                <!-- BREADCRUMBS / TOP BAR -->
+                <div class="px-10 h-20 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+                    <button @click="cancelFlow()" class="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-black">
+                        <i class="fas fa-times"></i> Cancel styling
+                    </button>
+                    <div class="flex gap-8">
+                        <span class="text-xs font-black uppercase tracking-widest" :class="step==='input'?'text-black':'text-gray-200'">01. Input</span>
+                        <span class="text-xs font-black uppercase tracking-widest" :class="step==='category'?'text-black':'text-gray-200'">02. Selection</span>
+                        <span class="text-xs font-black uppercase tracking-widest" :class="step==='results'?'text-black':'text-gray-200'">03. Results</span>
+                    </div>
+                    <div class="w-20"></div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto flex justify-center">
+                    <div class="w-full max-w-4xl p-10">
+                        
+                        <!-- STEP: INPUT -->
+                        <div x-show="step === 'input'" class="space-y-12 animate-fade-in">
+                            <div x-show="stylingOwnedItem" class="bg-gray-50 p-10 rounded-[40px] flex items-center gap-10 border border-gray-100">
+                                <img :src="stylingOwnedItem?.image" class="w-48 h-64 object-cover rounded-3xl shadow-xl">
+                                <div>
+                                    <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Selected Item</p>
+                                    <h2 class="text-4xl font-bold tracking-tighter" x-text="stylingOwnedItem?.name"></h2>
+                                    <p class="text-gray-500 mt-4 max-w-sm">We are finding matches for this piece from your other clothes and 80+ local & global shops.</p>
+                                </div>
+                            </div>
+
+                            <div x-show="!stylingOwnedItem">
+                                <h2 class="text-5xl font-bold tracking-tighter mb-8" x-text="inputType === 'link' ? 'Paste product link' : 'Describe your style' "></h2>
+                                <textarea x-model="userInput" class="w-full bg-gray-50 border border-gray-100 rounded-[32px] p-10 text-2xl h-64 focus:border-black outline-none resize-none shadow-sm"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-10">
+                                <div>
+                                    <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Occasion</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="occ in occasions">
+                                            <button @click="selectedOccasion = (selectedOccasion === occ ? null : occ)" class="px-6 py-3 border rounded-full text-xs font-bold transition-all uppercase tracking-widest" :class="selectedOccasion === occ ? 'bg-black text-white border-black shadow-lg' : 'bg-white text-gray-400 border-gray-100'"><span x-text="occ"></span></button>
+                                        </template>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">AI Filters</p>
+                                    <div class="flex items-center justify-between p-6 border border-gray-100 rounded-[24px] bg-gray-50">
+                                        <div class="flex items-center gap-3"><i class="fas fa-leaf text-green-600"></i><p class="font-bold text-sm">Vintage & Second-Hand Mode</p></div>
+                                        <input type="checkbox" x-model="isVintageMode" class="w-6 h-6 accent-black">
+                                    </div>
+                                    <div class="flex items-center justify-between p-6 border border-gray-100 rounded-[24px] bg-gray-50">
+                                        <div class="flex items-center gap-3"><i class="fas fa-map-marker-alt text-blue-600"></i><p class="font-bold text-sm">Hyper-Local (Same Day Pick-up)</p></div>
+                                        <input type="checkbox" x-model="isHyperLocal" class="w-6 h-6 accent-black">
+                                    </div>
+                                </div>
+                            </div>
+                            <button @click="step='category'" class="w-full bg-black text-white py-6 rounded-2xl font-black tracking-widest uppercase shadow-2xl active:scale-[0.99] transition-all" x-text="t[lang].next"></button>
+                        </div>
+
+                        <!-- STEP: CATEGORY -->
+                        <div x-show="step === 'category'" class="animate-fade-in">
+                            <h2 class="text-5xl font-bold tracking-tighter mb-12">Match this with?</h2>
+                            <div class="grid grid-cols-4 gap-6">
+                                <template x-for="cat in categories">
+                                    <div @click="selectTargetCategory(cat.id)" class="p-12 border border-gray-100 rounded-[40px] flex flex-col items-center gap-6 cursor-pointer hover:border-black transition-all bg-gray-50 active:scale-95 group">
+                                        <i :class="cat.icon" class="text-5xl text-gray-200 group-hover:text-black transition-colors"></i>
+                                        <span class="font-black text-xs uppercase tracking-widest text-gray-400 group-hover:text-black" x-text="t[lang][cat.key]"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- STEP: LOADING -->
+                        <div x-show="step === 'loading'" class="flex flex-col items-center justify-center py-40">
+                            <div class="w-20 h-20 border-8 border-gray-100 border-t-black rounded-full animate-spin mb-10"></div>
+                            <h3 class="text-4xl font-bold tracking-tighter" x-text="t[lang].finding_matches"></h3>
+                            <p class="text-xs text-gray-400 font-black uppercase tracking-[0.5em] mt-6" x-text="t[lang].ai_desc"></p>
+                        </div>
+
+                        <!-- STEP: RESULTS -->
+                        <div x-show="step === 'results'" class="space-y-20 animate-fade-in pb-40">
+                             <div x-show="closetMatches.length > 0">
+                                 <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mb-10">Your Digital Closet Synergy</h4>
+                                 <div class="grid grid-cols-3 gap-8">
+                                     <template x-for="item in closetMatches">
+                                         <div @click="openDetail(item, true)" class="bg-white rounded-[40px] p-6 border border-gray-100 flex flex-col gap-6 cursor-pointer relative shadow-sm hover:border-black transition-all">
+                                             <div class="aspect-[3/4] bg-gray-50 rounded-[30px] overflow-hidden"><img :src="item.image" class="w-full h-full object-cover"></div>
+                                             <div>
+                                                 <span class="text-[9px] font-black bg-black text-white px-3 py-1 rounded-full uppercase tracking-widest">OWNED</span>
+                                                 <h4 class="font-bold text-xl mt-4 tracking-tight" x-text="item.name"></h4>
+                                                 <p class="text-xs text-gray-400 mt-2 font-bold uppercase tracking-widest">Available in your locker</p>
+                                             </div>
+                                         </div>
+                                     </template>
+                                 </div>
+                             </div>
+
+                             <div>
+                                 <div class="flex justify-between items-center mb-10">
+                                     <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Recommended Purchases</h4>
+                                     <button @click="vibeCheck()" class="text-xs font-black px-6 py-2 border-2 border-black rounded-full uppercase tracking-widest hover:bg-black hover:text-white transition-all">Vibe Check Vote</button>
+                                 </div>
+                                 <div class="grid grid-cols-2 gap-8">
+                                     <template x-for="item in filteredResults">
+                                         <div @click="openDetail(item)" class="bg-white rounded-[48px] p-8 border border-gray-100 shadow-sm flex gap-10 cursor-pointer hover:border-black transition-all group">
+                                             <div class="w-48 h-64 bg-gray-50 rounded-[32px] overflow-hidden shrink-0 border border-gray-100 relative">
+                                                 <img :src="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                                 <template x-if="item.isVintage"><div class="absolute bottom-4 left-4 right-4 bg-green-900 text-white text-[9px] text-center font-black py-2 rounded-full uppercase tracking-widest">Vintage</div></template>
+                                             </div>
+                                             <div class="flex-1 flex flex-col justify-between py-4">
+                                                 <div>
+                                                     <div class="flex justify-between items-center mb-4">
+                                                         <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-400" x-text="item.brand"></span>
+                                                         <span class="text-[9px] font-black text-white bg-black px-3 py-1 rounded-full" x-text="item.isLocal ? 'IN STORE' : 'WEB'"></span>
+                                                     </div>
+                                                     <h4 class="text-3xl font-bold leading-none tracking-tighter" x-text="item.name"></h4>
+                                                     <p class="text-sm text-gray-400 font-bold mt-4 uppercase tracking-widest" x-text="item.isLocal ? 'Ganjlik Mall • Baku' : item.brand"></p>
+                                                 </div>
+                                                 <div class="flex justify-between items-center">
+                                                     <span class="text-3xl font-bold tracking-tighter" x-text="item.price"></span>
+                                                     <span class="text-xs font-black border-b-2 border-black pb-1 uppercase tracking-widest">Product Details</span>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     </template>
+                                 </div>
+                             </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- ================= 3. MODALS ================= -->
+
+        <!-- PRODUCT DETAIL MODAL (DESKTOP CENTERED) -->
+        <div x-show="detailModalOpen" class="fixed inset-0 z-[300] flex items-center justify-center p-20 pointer-events-none">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-xl pointer-events-auto" @click="detailModalOpen = false"></div>
+            
+            <div class="bg-white w-full max-w-6xl h-full rounded-[48px] overflow-hidden relative pointer-events-auto flex shadow-[0_30px_100px_rgba(0,0,0,0.5)] animate-fade-in">
+                
+                <button @click="detailModalOpen = false" class="absolute top-10 right-10 w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center z-10 text-black hover:bg-black hover:text-white transition-all shadow-xl"><i class="fas fa-times text-xl"></i></button>
+                
+                <!-- Left: Big Image -->
+                <div class="w-1/2 bg-gray-50 relative overflow-hidden h-full">
+                    <img :src="selectedItem?.image" class="w-full h-full object-cover">
+                    <template x-if="isViewingOwnedItem"><div class="absolute top-10 left-10 bg-black text-white px-8 py-3 rounded-full text-xs font-black uppercase tracking-[0.3em] shadow-2xl">Digital Closet Entry</div></template>
+                </div>
+
+                <!-- Right: Details -->
+                <div class="w-1/2 p-20 flex flex-col">
+                    <div class="mb-12">
+                        <span class="text-sm font-black uppercase tracking-[0.5em] text-gray-300 mb-2 block" x-text="selectedItem?.brand"></span>
+                        <h2 class="text-6xl font-bold mb-4 tracking-tighter leading-none" x-text="selectedItem?.name"></h2>
+                        <span x-show="!isViewingOwnedItem" class="text-4xl font-bold text-black tracking-tighter" x-text="selectedItem?.price"></span>
+                    </div>
+
+                    <div class="flex-1 space-y-12">
+                         <!-- Map / Availability -->
+                         <template x-if="selectedItem?.isLocal && !isViewingOwnedItem">
+                            <div class="p-8 bg-gray-50 rounded-[40px] border border-gray-100 flex items-center justify-between shadow-sm">
+                                <div>
+                                    <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Physical Location</p>
+                                    <p class="text-xl font-bold">28 Mall, Baku (Floor 2)</p>
+                                    <p class="text-xs text-green-600 font-bold mt-1 uppercase tracking-widest">In Stock: High</p>
+                                </div>
+                                <i class="fas fa-location-dot text-black text-4xl opacity-10"></i>
+                            </div>
+                         </template>
+
+                         <!-- Actions -->
+                         <div class="flex gap-6">
+                            <template x-if="isViewingOwnedItem">
+                                <div class="flex w-full gap-6">
+                                    <button @click="styleOwnedItem(selectedItem)" class="flex-1 bg-black text-white py-8 rounded-3xl font-black text-sm uppercase tracking-[0.3em] shadow-2xl hover:scale-[1.02] transition-all">Style with AI</button>
+                                    <button @click="sellItem(selectedItem)" class="flex-1 border-2 border-black text-black py-8 rounded-3xl font-black text-sm uppercase tracking-[0.3em] hover:bg-gray-50 transition-all">List for Sale</button>
+                                </div>
+                            </template>
+                            <template x-if="!isViewingOwnedItem">
+                                <button @click="handleItemAction(selectedItem)" class="flex-1 bg-black text-white py-8 rounded-3xl font-black text-sm uppercase tracking-[0.3em] shadow-2xl hover:scale-[1.02] transition-all">
+                                    <span x-text="selectedItem?.isLocal ? 'Open Store Map' : 'Go to ' + selectedItem?.brand"></span>
+                                </button>
+                            </template>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function espressoApp() {
+            // RELIABLE IMAGE IDS
+            const imgIds = {
+                pants: ['1542272617-08f086303294', '1624378439575-d8705ad7ae80', '1594633312681-425c7b97ccd1', '1541099649105-f69ad21f3246', '1584370848010-d7fe6bc767ec', '1506629869134-242f2b3501a1'],
+                shoes: ['1549298916-b41d501d3772', '1608256246200-53e635b5b65f', '1560769629-975e13f0c470', '1614252235316-8c857d38b5f4', '1525966222134-fcfa99b8ae77'],
+                top: ['1596755094514-f87e34085b2c', '1521572163474-6864f9cf17ab', '1583743814966-8936f5b7be1a', '1618354691373-d851c5c3a990', '1523381210434-271e8be1f52b'],
+                acc: ['1599643478518-17488fbbcd75', '1524592094714-0f0654e20314', '1588444650733-d0767b753fc8', '1535551951406-a19932454aa0']
+            };
+            const getImg = (cat) => `https://images.unsplash.com/photo-${imgIds[cat][Math.floor(Math.random()*imgIds[cat].length)]}?q=80&w=800`;
+
+            return {
+                showSplash: true, currentView: 'auth', authMode: 'login', currentTab: 'home', isProcessing: false, step: '',
+                inputType: '', userInput: '', uploadedImage: '', targetCategory: null, detailModalOpen: false, selectedItem: null,
+                lang: 'en', wardrobeFilter: 'all', isVintageMode: false, isHyperLocal: false, stylingOwnedItem: null, isViewingOwnedItem: false,
+                user: { name: 'Aziz Alizade', sizes: { top: 'L', bottom: '32', shoe: '43' } },
+                history: [], filteredResults: [], closetMatches: [],
+                weatherProduct: { id: 99, name: 'Wool Trench Coat', brand: 'Zara', image: 'https://images.unsplash.com/photo-1544022613-e87ca19207d8?q=80&w=800', price: '249₼', isLocal: true },
+                occasions: ['Casual', 'Date Night', 'Business', 'Night Out'], selectedOccasion: null,
+                categories: [ { id: 'top', key: 'cat_top', icon: 'fas fa-tshirt' }, { id: 'pants', key: 'cat_pants', icon: 'fas fa-columns' }, { id: 'shoes', key: 'cat_shoes', icon: 'fas fa-shoe-prints' }, { id: 'acc', key: 'cat_acc', icon: 'fas fa-hat-cowboy' } ],
+                
+                t: { en: { auth_subtitle: "Your Personal AI Stylist.", sign_in: "Sign In", create_account: "Create", no_account: "New member? Sign Up", has_account: "Member? Sign In", hello_user: "Hi, Style Icon", weather_tip: "Rain alert. Trench coat recommended.", snap_match: "Snap & Match", snap_desc: "Visual Styling", paste_link: "Paste Link", write_prompt: "Write Prompt", recent_history: "Recent Matches", wardrobe: "Wardrobe", items: "items", all: "All", cat_top: "Tops", cat_pants: "Bottoms", cat_shoes: "Shoes", cat_acc: "Acc", my_sizes: "My Sizes", logout: "Logout", next: "Continue", results: "Results", ai_desc: "Checking 80+ inventories...", occasion_label: "Occasion", vintage_label: "Include Vintage", visit_shop: "Map", buy_online: "Order" },
+                     az: { auth_subtitle: "Sizin AI Stilistiniz.", sign_in: "Daxil Ol", create_account: "Yarat", no_account: "Yeni? Qeydiyyat", has_account: "Üzvsən? Giriş", hello_user: "Salam, Stil İkonu", weather_tip: "Yağış yağır. Plaş məsləhətdir.", snap_match: "Şəkil Çək", snap_desc: "Vizual Analiz", paste_link: "Link", write_prompt: "Yazı", recent_history: "Son Aktivlik", wardrobe: "Qarderob", items: "geyim", all: "Hamısı", cat_top: "Üst", cat_pants: "Şalvar", cat_shoes: "Ayaqqabı", cat_acc: "Aksesuar", my_sizes: "Ölçülərim", logout: "Çıxış", next: "Davam Et", results: "Nəticələr", ai_desc: "80+ mağaza taranır...", occasion_label: "Məkan", vintage_label: "Vintage", visit_shop: "Xəritə", buy_online: "Sifariş" } },
+
+                init() {
+                    this.allProducts = []; 
+                    ['pants', 'shoes', 'top', 'acc'].forEach(c => {
+                        for(let i=0; i<20; i++) this.allProducts.push({ id: Math.random(), category: c, name: `Street ${c}`, brand: ['Zara','Temu','Amazon','Trendyol'][i%4], price: (Math.random()*150+40).toFixed(0)+'₼', isLocal: i%2==0, image: getImg(c), isVintage: i>15, url: 'https://google.com' });
+                    });
+                    this.wardrobeItems = this.allProducts.slice(0, 15);
+                    setTimeout(() => this.showSplash = false, 2000);
+                },
+
+                login() { this.currentView = 'app'; },
+                logout() { this.currentView = 'auth'; },
+                startFlow(type) { this.inputType = type; this.isProcessing = true; this.step = 'input'; this.stylingOwnedItem = null; },
+                cancelFlow() { this.isProcessing = false; this.step = ''; this.stylingOwnedItem = null; },
+                selectTargetCategory(id) {
+                    this.targetCategory = id; this.step = 'loading';
+                    setTimeout(() => {
+                        this.filteredResults = this.allProducts.filter(p => p.category === id).slice(0, 8);
+                        this.closetMatches = this.wardrobeItems.filter(p => p.category === id).slice(0, 2);
+                        this.step = 'results';
+                        this.history.unshift({ id: Date.now(), name: this.stylingOwnedItem ? 'Style: '+this.stylingOwnedItem.name : 'Search Match', date: 'Just now', image: this.uploadedImage || getImg(id) });
+                    }, 2000);
+                },
+                handleImageUpload(e) { const f = e.target.files[0]; if(f) { let r = new FileReader(); r.onload = (ev) => { this.uploadedImage = ev.target.result; this.startFlow('camera'); this.step = 'category'; }; r.readAsDataURL(f); } },
+                openDetail(item, owned = false) { this.selectedItem = item; this.isViewingOwnedItem = owned; this.detailModalOpen = true; },
+                handleItemAction(item) { if(item.isLocal) alert("Opening Map..."); else window.open('https://google.com', '_blank'); },
+                loadFromHistory(item) { this.isProcessing = true; this.uploadedImage = item.image; this.step = 'results'; this.filteredResults = this.allProducts.slice(0,4); },
+                get filteredWardrobe() { return this.wardrobeFilter === 'all' ? this.wardrobeItems : this.wardrobeItems.filter(i => i.category === this.wardrobeFilter); },
+                changeSize(t) { const s = ['S','M','L','XL']; this.user.sizes[t] = s[(s.indexOf(this.user.sizes[t])+1)%s.length]; },
+                styleOwnedItem(item) { this.detailModalOpen = false; setTimeout(() => { this.stylingOwnedItem = item; this.uploadedImage = item.image; this.isProcessing = true; this.step = 'input'; }, 300); },
+                sellItem(item) { alert("Item listed on the marketplace!"); this.detailModalOpen = false; },
+                vibeCheck() { alert("Vibe vote link copied to clipboard!"); },
+                getDate() { return new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' }); },
+                setLang(l) { this.lang = l; }
+            }
+        }
+    </script>
+{% endblock %}

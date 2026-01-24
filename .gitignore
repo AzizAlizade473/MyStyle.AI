@@ -1,7 +1,7 @@
 # --- Security (The most important part) ---
 .env
 .env.*
-!env.example
+!.env.example
 *.pem
 *.key
 
@@ -9,34 +9,76 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 db.sqlite3
 local_settings.py
 
+# --- Testing & Coverage ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.hypothesis/
+
+# --- Virtual Environments ---
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
 # --- Docker & Local Data ---
-# Ignore the actual data stored in volumes
 postgres_data/
 media_data/
-
-# We want to keep the folders if they are empty, but ignore content? 
-# Usually for docker volumes, we ignore the folder entirely.
-# If you want to keep the folder structure but ignore content, use:
-# media_data/*
-# !media_data/.gitkeep
+backend/media/
+media_local/uploads/
 
 # --- IDEs & Editors ---
 .idea/
 .vscode/
 *.swp
 *.swo
+*.swn
+*~
 .DS_Store
-env
+*.sublime-project
+*.sublime-workspace
+
 # --- Frontend ---
-# If you ever add node_modules for JS libraries
 node_modules/
 npm-debug.log
 yarn-error.log
+.next/
+out/
 
 # --- Static files ---
-# In production, collectstatic puts files here. 
-# You generally don't commit the collected static files.
 backend/static_root/
+
+# --- Celery ---
+celerybeat-schedule
+dump.rdb
+
+# --- OS Files ---
+Thumbs.db
+.AppleDouble
+.LSOverride
