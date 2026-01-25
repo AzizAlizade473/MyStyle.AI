@@ -1,0 +1,15 @@
+<!-- Email (templates/login(desktop).html) -->
+    <div>
+        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Email</label>
+        <div class="relative">
+            <i class="fas fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
+            <input type="email" placeholder="email@example.com" class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-sm focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none transition-all">
+        </div>
+    </div>
+
+<!-- Toggle Mode (templates/login(desktop).html)-->
+    <div class="mt-8 text-center">
+        <button @click="authMode = (authMode === 'login' ? 'signup' : 'login')" class="text-xs font-bold text-gray-400 hover:text-black transition-colors uppercase tracking-widest">
+            <span x-text="authMode === 'login' ? t[lang].no_account : t[lang].has_account"></span>
+        </button>
+    </div>
