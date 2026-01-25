@@ -13,5 +13,5 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
     path('login/', TemplateView.as_view(template_name='login(desktop).html'), name='login'),
     path('new_front/', TemplateView.as_view(template_name='index(desktop).html'), name='new_front'),
-    path('register/', TemplateView.as_view(template_name='register.html'), name='register'),
+    path('register/', TemplateView.as_view(template_name='register(desktop).html'), name='register'),
 ]
