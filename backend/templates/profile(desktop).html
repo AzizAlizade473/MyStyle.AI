@@ -1,0 +1,63 @@
+{% extends 'base(desktop).html' %}
+
+{% block content %}
+
+<!-------------------------------VIEW: PROFILE (WIDE) ----------------------------->
+            <div x-show="currentTab === 'profile'" class="flex-1 overflow-y-auto p-10 bg-white">
+                <div class="max-w-4xl">
+                    <h2 class="text-4xl font-bold tracking-tighter mb-12">Account Settings</h2>
+                    
+                    <div class="grid grid-cols-2 gap-12">
+                        <div class="space-y-12">
+                            <div>
+                                <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6">Visual Identity</h3>
+                                <div class="flex items-center gap-6">
+                                    <div class="w-24 h-24 rounded-full bg-black flex items-center justify-center text-4xl font-bold text-white shadow-2xl" x-text="user.name.charAt(0)"></div>
+                                    <div>
+                                        <h4 class="text-2xl font-bold" x-text="user.name"></h4>
+                                        <p class="text-gray-400">Verified Style Icon • Baku, AZ</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6" x-text="t[lang].my_sizes"></h3>
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div @click="changeSize('top')" class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
+                                        <p class="text-[10px] font-black text-gray-400 mb-1">TOPS</p>
+                                        <p class="font-bold text-2xl" x-text="user.sizes.top"></p>
+                                    </div>
+                                    <div @click="changeSize('bottom')" class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
+                                        <p class="text-[10px] font-black text-gray-400 mb-1">BOTTOMS</p>
+                                        <p class="font-bold text-2xl" x-text="user.sizes.bottom"></p>
+                                    </div>
+                                    <div @click="changeSize('shoe')" class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
+                                        <p class="text-[10px] font-black text-gray-400 mb-1">SHOES</p>
+                                        <p class="font-bold text-2xl" x-text="user.sizes.shoe"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded-[40px] p-10 border border-gray-100">
+                             <h3 class="text-lg font-bold mb-6">Preferences</h3>
+                             <div class="space-y-6">
+                                <div class="flex justify-between items-center py-4 border-b border-gray-200">
+                                    <span class="font-bold text-sm">System Language</span>
+                                    <div class="flex gap-4">
+                                        <button @click="setLang('az')" class="text-xs font-black uppercase" :class="lang==='az' ? 'text-black' : 'text-gray-300'">AZ</button>
+                                        <button @click="setLang('en')" class="text-xs font-black uppercase" :class="lang==='en' ? 'text-black' : 'text-gray-300'">EN</button>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center py-4 border-b border-gray-200">
+                                    <span class="font-bold text-sm">Currency</span>
+                                    <span class="text-xs font-black text-black">AZN (₼)</span>
+                                </div>
+                                <button onclick="logout()" class="w-full text-center text-red-500 font-black text-xs uppercase tracking-widest pt-8">Log out of Espresso</button>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+<!----------------------------- END OF VIEW: PROFILE (WIDE) --------------------------->
+{% endblock %}

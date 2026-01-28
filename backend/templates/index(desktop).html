@@ -12,36 +12,6 @@
             <h1 class="text-4xl font-bold tracking-[0.5em] uppercase">Espresso</h1>
         </div>
 
-        <!-- ================= 1. SIDEBAR ================= -->
-        <aside x-show="currentView !== 'auth'" class="w-64 border-r border-gray-100 flex flex-col p-6 shrink-0 bg-white">
-            <div class="mb-12">
-                <h1 class="text-2xl font-bold tracking-tighter italic">Espresso.</h1>
-            </div>
-
-            <nav class="flex-1">
-                <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold">
-                    <i class="fas fa-home w-5"></i> Dashboard
-                </button>
-                <button @click="currentTab = 'wardrobe'" :class="currentTab === 'wardrobe' ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
-                    <i class="fas fa-layer-group w-5"></i> My Closet
-                </button>
-                <button @click="currentTab = 'profile'" :class="currentTab === 'profile' ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
-                    <i class="fas fa-user-circle w-5"></i> Profile
-                </button>
-            </nav>
-
-            <div class="mt-auto border-t border-gray-100 pt-6">
-                <div class="flex items-center gap-3 mb-6 px-2">
-                    <div class="w-10 h-10 bg-black rounded-full text-white flex items-center justify-center font-bold" x-text="user.name.charAt(0)"></div>
-                    <div class="flex-1 overflow-hidden">
-                        <p class="font-bold text-sm truncate" x-text="user.name"></p>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Premium Member</p>
-                    </div>
-                </div>
-                <button @click="logout()" class="w-full text-left text-red-500 text-xs font-bold uppercase px-4 py-2 hover:bg-red-50 rounded-lg">Logout</button>
-            </div>
-        </aside>
-
         <!-- ================= 2. MAIN CONTENT AREA ================= -->
         <main x-show="currentView !== 'auth'" class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden">
             
@@ -207,64 +177,6 @@
                             <p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest mt-1" x-text="item.brand"></p>
                         </div>
                     </template>
-                </div>
-            </div>
-
-            <!-- VIEW: PROFILE (WIDE) -->
-            <div x-show="currentTab === 'profile'" class="flex-1 overflow-y-auto p-10 bg-white">
-                <div class="max-w-4xl">
-                    <h2 class="text-4xl font-bold tracking-tighter mb-12">Account Settings</h2>
-                    
-                    <div class="grid grid-cols-2 gap-12">
-                        <div class="space-y-12">
-                            <div>
-                                <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6">Visual Identity</h3>
-                                <div class="flex items-center gap-6">
-                                    <div class="w-24 h-24 rounded-full bg-black flex items-center justify-center text-4xl font-bold text-white shadow-2xl" x-text="user.name.charAt(0)"></div>
-                                    <div>
-                                        <h4 class="text-2xl font-bold" x-text="user.name"></h4>
-                                        <p class="text-gray-400">Verified Style Icon • Baku, AZ</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6" x-text="t[lang].my_sizes"></h3>
-                                <div class="grid grid-cols-3 gap-4">
-                                    <div @click="changeSize('top')" class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
-                                        <p class="text-[10px] font-black text-gray-400 mb-1">TOPS</p>
-                                        <p class="font-bold text-2xl" x-text="user.sizes.top"></p>
-                                    </div>
-                                    <div @click="changeSize('bottom')" class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
-                                        <p class="text-[10px] font-black text-gray-400 mb-1">BOTTOMS</p>
-                                        <p class="font-bold text-2xl" x-text="user.sizes.bottom"></p>
-                                    </div>
-                                    <div @click="changeSize('shoe')" class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
-                                        <p class="text-[10px] font-black text-gray-400 mb-1">SHOES</p>
-                                        <p class="font-bold text-2xl" x-text="user.sizes.shoe"></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="bg-gray-50 rounded-[40px] p-10 border border-gray-100">
-                             <h3 class="text-lg font-bold mb-6">Preferences</h3>
-                             <div class="space-y-6">
-                                <div class="flex justify-between items-center py-4 border-b border-gray-200">
-                                    <span class="font-bold text-sm">System Language</span>
-                                    <div class="flex gap-4">
-                                        <button @click="setLang('az')" class="text-xs font-black uppercase" :class="lang==='az' ? 'text-black' : 'text-gray-300'">AZ</button>
-                                        <button @click="setLang('en')" class="text-xs font-black uppercase" :class="lang==='en' ? 'text-black' : 'text-gray-300'">EN</button>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center py-4 border-b border-gray-200">
-                                    <span class="font-bold text-sm">Currency</span>
-                                    <span class="text-xs font-black text-black">AZN (₼)</span>
-                                </div>
-                                <button @click="logout()" class="w-full text-center text-red-500 font-black text-xs uppercase tracking-widest pt-8">Log out of Espresso</button>
-                             </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 

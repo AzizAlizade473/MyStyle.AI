@@ -113,7 +113,7 @@
                 // 2. SAVE THE TOKEN
                 localStorage.setItem('userToken', data.token);
                 // 3. Redirect to Home
-                window.location.href = `{% url 'home' %}`;
+                window.location.href = `{% url 'profile_page' %}`;
             } else {
                 errorDiv.innerText = "Invalid credentials";
                 errorContainer.classList.remove('hidden');

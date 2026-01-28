@@ -14,4 +14,5 @@ urlpatterns = [
     path('login/', TemplateView.as_view(template_name='login(desktop).html'), name='login'),
     path('new_front/', TemplateView.as_view(template_name='index(desktop).html'), name='new_front'),
     path('register/', TemplateView.as_view(template_name='register(desktop).html'), name='register'),
+    path('profile/', TemplateView.as_view(template_name='profile(desktop).html'), name='profile_page'),
 ]

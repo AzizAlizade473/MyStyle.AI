@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - AI Stylist{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <h1>My Profile</h1>
+
+    <div id="loading" style="text-align: center; padding: 40px;">
+        <p>Loading profile...</p>
+    </div>
+
+    <div id="profileCard" style="display: none; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        
+        <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+            <h2 id="dispUsername" style="margin: 0; color: #333;"></h2>
+            <p id="dispEmail" style="color: #666; margin: 5px 0;"></p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <div>
+                <strong>Top Size:</strong> <span id="dispTop"></span>
+            </div>
+            <div>
+                <strong>Bottom Size:</strong> <span id="dispBottom"></span>
+            </div>
+            <div>
+                <strong>Shoe Size:</strong> <span id="dispShoe"></span>
+            </div>
+            <div>
+                <strong>Gender:</strong> <span id="dispGender"></span>
+            </div>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <strong>Style Preferences:</strong><br>
+            <span id="dispPrefs" style="color: #555;"></span>
+        </div>
+
+        <div style="margin-top: 30px; display: flex; justify-content: space-between;">
+            <button onclick="alert('Edit Feature Coming Soon!')" style="padding: 10px 20px; cursor: pointer;">Edit Profile</button>
+            <button onclick="logout()" style="padding: 10px 20px; cursor: pointer; background-color: #ffebee; color: #c62828; border: 1px solid #c62828;">Sign Out</button>
+        </div>
+    </div>
+
+    <div id="errorMsg" style="color: red; display: none; text-align: center; margin-top: 20px;"></div>
+</div>
+
+<script>
+    async function loadProfile() {
+        const token = localStorage.getItem('userToken');
+        
+        // 1. Redirect if not logged in
+        if (!token) {
+            window.location.href = "{% url 'login' %}";
+            return;
+        }
+
+        try {
+            // 2. Fetch Data
+            const response = await fetch('/api/auth/profile/', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Token ' + token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // 3. Handle Errors
+            if (!response.ok) {
+                if (response.status === 401) logout(); // Token expired
+                throw new Error("Failed to load profile");
+            }
+
+            const data = await response.json();
+
+            // 4. Fill Data
+            document.getElementById('dispUsername').innerText = data.username || "User";
+            document.getElementById('dispEmail').innerText = data.email || "";
+            document.getElementById('dispTop').innerText = data.top || "-";
+            document.getElementById('dispBottom').innerText = data.bottom || "-";
+            document.getElementById('dispShoe').innerText = data.shoe_size || "-";
+            document.getElementById('dispGender').innerText = data.gender || "-";
+            document.getElementById('dispPrefs').innerText = data.preferences || "No preferences set.";
+
+            // 5. Show Card
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('profileCard').style.display = 'block';
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('errorMsg').innerText = "Error loading profile. Please try refreshing.";
+            document.getElementById('errorMsg').style.display = 'block';
+        }
+    }
+
+    // Load immediately
+    loadProfile();
+</script>
+{% endblock %}
