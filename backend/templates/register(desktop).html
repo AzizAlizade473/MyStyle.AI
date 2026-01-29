@@ -2,7 +2,7 @@
 
 {% block content %}
 <!-- ================= 0.5 REGISTER PAGE (NEW ADDITION) ================= -->
- <div x-show="currentView === 'auth'" class="w-full h-full flex animate-fade-in">
+<div class="w-full h-full flex animate-fade-in">
     <!-- Left: Brand Visual -->
     <div class="w-5/12 bg-black relative flex flex-col justify-between p-16 text-white overflow-hidden">
         <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1000')] bg-cover bg-center opacity-40 grayscale mix-blend-screen"></div>
@@ -81,10 +81,11 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Message Container -->
                 <div>
                     <div class="relative mt-6 h-6 flex items-center hidden" id="messageContainer">
-                        <div class="w-full bg-red-50 border border-red-200 rounded-2xl py-2 px-4 font-bold text-xs text-red-600 flex items-center" id="message"></div>
+                        <div class="hidden" id="message"></div>
                     </div>
                 </div>
 
@@ -152,7 +153,7 @@
 
             // 3. Handle response
             if (response.ok) {
-                messageDiv.className = 'bg-green-50 border border-green-200 text-green-600';
+                messageDiv.className = 'w-full rounded-2xl py-2 px-2 font-bold text-xs flex items-center bg-green-50 border border-green-200 text-green-600';
                 messageDiv.innerText = result.message || 'Registration successful! Redirecting...';
                 messageContainer.classList.remove('hidden');
                 document.getElementById('registerForm').reset();
@@ -162,15 +163,16 @@
                 }, 2000);
             } else {
                 // Error state - red styling
-                messageDiv.className = 'bg-red-50 border border-red-200 text-red-600';
+                messageDiv.className = 'w-full rounded-2xl py-2 px-2 font-bold text-xs flex items-center bg-red-50 border border-red-200 text-red-600';
                 // Show specific error from Django (e.g., "Username already exists")
-                messageDiv.innerText = result.detail || JSON.stringify(result);
+                let resultArray = Object.values(result);
+                messageDiv.innerText = result.detail || resultArray.flat().join(' ') || 'Registration failed. Please try again.';
                 messageContainer.classList.remove('hidden');
             }
         } catch (error) {
             console.error('Error:', error);
-            messageDiv.className = 'bg-red-50 border border-red-200 text-red-600';
-            messageDiv.innerText = "Network error. Is the backend running?";
+            messageDiv.className = 'w-full rounded-2xl py-2 px-2 font-bold text-xs flex items-center bg-red-50 border border-red-200 text-red-600';
+            messageDiv.innerText = "Network error. Please try again later.";
             messageContainer.classList.remove('hidden');
         }
     });

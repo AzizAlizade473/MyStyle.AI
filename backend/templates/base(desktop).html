@@ -49,28 +49,28 @@
 <body class="bg-white text-black antialiased h-screen overflow-hidden font-sans">
     <div class="flex h-full w-full">
                 <!-- ================= 1. SIDEBAR ================= -->
-        <aside id="sidebar" class="w-64 border-r border-gray-100 flex flex-col p-6 shrink-0 bg-white hidden">
+        <aside id="sidebar" class="w-64 border-r border-gray-100 flex flex-col p-6 shrink-0 bg-white hidden" x-data="sidebarComponent()">
             <div class="mb-12">
                 <h1 class="text-2xl font-bold tracking-tighter italic">Espresso.</h1>
             </div>
 
             <nav class="flex-1">
-                <button @click="currentTab = 'home'" :class="currentTab === 'home' ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold">
+                <button :class="isHome ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold">
                     <i class="fas fa-home w-5"></i> Dashboard
                 </button>
-                <button @click="currentTab = 'wardrobe'" :class="currentTab === 'wardrobe' ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
+                <button :class="isWardrobe ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
                     <i class="fas fa-layer-group w-5"></i> My Closet
                 </button>
-                <button @click="currentTab = 'profile'" :class="currentTab === 'profile' ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
+                <button :class="isProfile ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
                     <i class="fas fa-user-circle w-5"></i> Profile
                 </button>
             </nav>
 
             <div class="mt-auto border-t border-gray-100 pt-6">
                 <div class="flex items-center gap-3 mb-6 px-2">
-                    <div class="w-10 h-10 bg-black rounded-full text-white flex items-center justify-center font-bold" x-text="user.name.charAt(0)"></div>
+                    <div id="UserInitials" class="w-10 h-10 bg-black rounded-full text-white flex items-center justify-center font-bold"></div>
                     <div class="flex-1 overflow-hidden">
-                        <p class="font-bold text-sm truncate" x-text="user.name"></p>
+                        <p id="UserName" class="font-bold text-sm truncate"></p>
                         <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Premium Member</p>
                     </div>
                 </div>
@@ -98,6 +98,9 @@
 
                 if (response.ok) {
                     sidebar.classList.remove("hidden");
+                    const data = await response.json();
+                    document.querySelector('#UserInitials').innerText = data.username.charAt(0).toUpperCase();
+                    document.querySelector('#UserName').innerText = data.username;
                 } else {
                     localStorage.removeItem("userToken");
                 }
@@ -109,6 +112,14 @@
         window.logout = function logout() {
             localStorage.removeItem('userToken');
             window.location.href = "{% url 'login' %}";
+        }
+
+        function sidebarComponent() {
+            return {
+                isHome: window.location.pathname === '{% url "home" %}',
+                isWardrobe: window.location.pathname === '#',
+                isProfile: window.location.pathname === '{% url "profile_page" %}',
+            }
         }
     </script>
 {% endblock %}
