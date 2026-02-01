@@ -1,0 +1,401 @@
+{% extends 'base(desktop).html' %}
+
+{% block content %}
+
+    <div x-show="isProcessing" class="flex-1 flex flex-col items-center justify-center p-10 bg-white hidden">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-black mb-6"></div>
+        <p class="text-lg font-bold" x-text="t[lang].processing_msg"></p>
+    </div>
+
+    <!-- VIEW: HOME (DESKTOP GRID) -->
+    <div x-show="currentTab === 'home' && !isProcessing" class="flex-1 overflow-y-auto p-10">
+        <div class="flex gap-8 mb-12">
+            <!-- Weather Card (WIDE) -->
+            <div @click="openDetail(weatherProduct)" class="flex-1 bg-black text-white p-8 rounded-[32px] flex items-center justify-between group cursor-pointer relative overflow-hidden shadow-xl">
+                <div class="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                <div class="flex items-center gap-8 relative z-10">
+                    <div class="bg-white/10 backdrop-blur-md p-6 rounded-3xl"><i class="fas fa-cloud-showers-heavy text-5xl"></i></div>
+                    <div>
+                        <h3 class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">Morning Update • Baku, AZ</h3>
+                        <p class="text-3xl font-bold leading-tight" x-text="t[lang].weather_tip"></p>
+                        <button class="mt-4 bg-white text-black px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 transition-transform">Discover Look</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- How to Use Widget -->
+            <div class="w-80 bg-white border border-gray-100 rounded-[32px] p-8 flex flex-col shadow-sm">
+                <div class="flex items-center gap-2 mb-6">
+                    <div class="w-2 h-2 rounded-full bg-black"></div>
+                    <p class="text-[10px] font-black text-black uppercase tracking-[0.2em]">How Espresso Works</p>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Step 1 -->
+                    <div class="flex gap-4">
+                        <span class="text-xs font-black text-gray-200 uppercase tracking-tighter">01</span>
+                        <div>
+                            <h5 class="text-sm font-bold leading-none mb-1 uppercase tracking-tight">Input</h5>
+                            <p class="text-[11px] text-gray-400 leading-tight">Snap a photo, paste a link, or write a style prompt.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="flex gap-4">
+                        <span class="text-xs font-black text-gray-200 uppercase tracking-tighter">02</span>
+                        <div>
+                            <h5 class="text-sm font-bold leading-none mb-1 uppercase tracking-tight">Select</h5>
+                            <p class="text-[11px] text-gray-400 leading-tight">Choose what you want to match (e.g., matching shoes).</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="flex gap-4">
+                        <span class="text-xs font-black text-gray-200 uppercase tracking-tighter">03</span>
+                        <div>
+                            <h5 class="text-sm font-bold leading-none mb-1 uppercase tracking-tight">Style</h5>
+                            <p class="text-[11px] text-gray-400 leading-tight">AI matches your closet items or finds new pieces nearby.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Hint -->
+                <div class="mt-auto pt-6 border-t border-gray-50">
+                    <div class="flex items-center gap-2 text-green-600">
+                        <i class="fas fa-magic text-[10px]"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">AI Ready to style</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UNIFIED ACTION GRID (with Upload & Search) -->
+        <div class="grid grid-cols-3 gap-6 mb-12">
+            
+            <!-- SNAP & MATCH (File Upload) -->
+            <div class="bg-white border border-gray-100 p-8 rounded-[32px] flex flex-col gap-4 shadow-sm relative group hover:border-black transition-all">
+                <div class="flex flex-col items-center gap-4 cursor-pointer" onclick="document.getElementById('cameraInput').click()">
+                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-2xl text-black group-hover:scale-110 transition-transform">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="font-bold text-lg uppercase tracking-tighter" x-text="t[lang].snap_match"></h4>
+                        <p class="text-gray-400 text-xs mt-1" x-text="t[lang].snap_desc">Upload an image of your outfit</p>
+                    </div>
+                </div>
+
+                <!-- Hidden File Input -->
+                <input type="file" id="cameraInput" accept="image/*" class="hidden" onchange="handleFileUpload(event)">
+
+                <!-- Source Selector (compact) -->
+                <div class="border-t border-gray-100 pt-4 mt-2">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Item Source</label>
+                    <select id="fileSourceInput" onchange="toggleLocalFieldsFile()" class="w-full text-xs p-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none">
+                        <option value="AMAZON">Amazon</option>
+                        <option value="TEMU">Temu</option>
+                        <option value="TRENDYOL">Trendyol</option>
+                        <option value="LOCAL">Local Market</option>
+                    </select>
+
+                    <!-- Local Market Fields -->
+                    <div id="fileLocalFields" class="mt-3 space-y-2 hidden">
+                        <input type="text" id="fileMarketName" placeholder="Market Name" class="w-full text-xs p-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none">
+                        <input type="text" id="fileMarketLocation" placeholder="Location/Address" class="w-full text-xs p-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none">
+                    </div>
+                </div>
+
+                <div id="fileUploadStatus" class="text-xs font-bold text-center"></div>
+            </div>
+
+            <!-- PASTE LINK (URL Upload) -->
+            <div class="bg-white border border-gray-100 p-8 rounded-[32px] flex flex-col gap-4 shadow-sm hover:border-black transition-all">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-2xl text-blue-500">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="font-bold text-lg uppercase tracking-tighter" x-text="t[lang].paste_link"></h4>
+                        <p class="text-gray-400 text-xs mt-1">Direct match from URL</p>
+                    </div>
+                </div>
+
+                <!-- URL Input -->
+                <div class="space-y-3">
+                    <input type="url" id="urlInput" placeholder="https://example.com/image.jpg" class="w-full text-xs p-3 border border-gray-200 rounded-lg focus:border-black focus:outline-none">
+
+                    <!-- Source Selector -->
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Item Source</label>
+                        <select id="urlSourceInput" onchange="toggleLocalFieldsUrl()" class="w-full text-xs p-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none">
+                            <option value="AMAZON">Amazon</option>
+                            <option value="TEMU">Temu</option>
+                            <option value="TRENDYOL">Trendyol</option>
+                            <option value="LOCAL">Local Market</option>
+                        </select>
+
+                        <!-- Local Market Fields -->
+                        <div id="urlLocalFields" class="mt-3 space-y-2 hidden">
+                            <input type="text" id="urlMarketName" placeholder="Market Name" class="w-full text-xs p-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none">
+                            <input type="text" id="urlMarketLocation" placeholder="Location/Address" class="w-full text-xs p-2 border border-gray-200 rounded-lg focus:border-black focus:outline-none">
+                        </div>
+                    </div>
+
+                    <button onclick="handleUrlUpload()" class="w-full bg-black text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-gray-800 active:scale-[0.98] transition-all">
+                        Process URL
+                    </button>
+                </div>
+
+                <div id="urlUploadStatus" class="text-xs font-bold text-center"></div>
+            </div>
+
+            <!-- AI SEARCH (Text Search) -->
+            <div class="bg-white border border-gray-100 p-8 rounded-[32px] flex flex-col gap-4 shadow-sm hover:border-black transition-all">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-2xl text-amber-500">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="font-bold text-lg uppercase tracking-tighter">AI Search</h4>
+                        <p class="text-gray-400 text-xs mt-1">Find items by description</p>
+                    </div>
+                </div>
+
+                <!-- Search Input -->
+                <div class="space-y-3">
+                    <input type="text" id="searchInput" placeholder="Search for 'Red Dress'..." class="w-full text-xs p-3 border border-gray-200 rounded-lg focus:border-black focus:outline-none" onkeypress="if(event.key==='Enter') searchImages()">
+                    
+                    <button onclick="searchImages()" class="w-full bg-black text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-gray-800 active:scale-[0.98] transition-all">
+                        Search
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SEARCH RESULTS (Shared Display Area) -->
+        <div id="searchResultsContainer" class="mb-12 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-bold text-xl tracking-tight">Search Results</h3>
+                <button onclick="clearSearchResults()" class="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-black">Clear</button>
+            </div>
+            <div id="searchResults" class="grid grid-cols-4 gap-6"></div>
+        </div>
+
+        <!-- History Horizontal -->
+        <div class="flex justify-between items-end mb-6">
+            <h3 class="font-bold text-xl tracking-tight" x-text="t[lang].recent_history"></h3>
+            <button class="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-black">Delete All</button>
+        </div>
+        <div class="flex gap-4 overflow-x-auto hide-scroll pb-10">
+            <template x-for="item in history">
+                <div @click="loadFromHistory(item)" class="w-64 shrink-0 bg-white p-4 rounded-3xl border border-gray-100 cursor-pointer hover:border-black transition-all group">
+                    <div class="aspect-[4/5] bg-gray-50 rounded-2xl overflow-hidden mb-4 relative">
+                        <img :src="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                        <div class="absolute bottom-2 left-2 bg-white/90 backdrop-blur px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest shadow-sm">Look #1</div>
+                    </div>
+                    <p class="font-bold text-sm" x-text="item.name"></p>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase mt-1" x-text="item.date"></p>
+                </div>
+            </template>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+    <script>
+        // --- 1. AUTH CHECK ---
+        const token = localStorage.getItem('userToken');
+        if (!token) {
+            window.location.href = "{% url 'login' %}";
+        }
+
+        // --- 2. TOGGLE LOCAL MARKET FIELDS ---
+        function toggleLocalFieldsFile() {
+            const source = document.getElementById('fileSourceInput').value;
+            document.getElementById('fileLocalFields').classList.toggle('hidden', source !== 'LOCAL');
+        }
+
+        function toggleLocalFieldsUrl() {
+            const source = document.getElementById('urlSourceInput').value;
+            document.getElementById('urlLocalFields').classList.toggle('hidden', source !== 'LOCAL');
+        }
+
+        // --- 2B. UNIFIED PROCESSING COMPLETION HANDLER ---
+        function onProcessingComplete(itemId) {
+            // Auto-search for similar items whenever any input finishes processing
+            setTimeout(() => searchSimilar(itemId), 500);
+        }
+
+        // --- 3. FILE UPLOAD HANDLER ---
+        async function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const statusDiv = document.getElementById('fileUploadStatus');
+            const sourceInput = document.getElementById('fileSourceInput');
+            const marketName = document.getElementById('fileMarketName');
+            const marketLocation = document.getElementById('fileMarketLocation');
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('source', sourceInput.value);
+
+            if (sourceInput.value === 'LOCAL') {
+                formData.append('market_name', marketName.value);
+                formData.append('market_location', marketLocation.value);
+            }
+
+            statusDiv.innerHTML = '<span class="text-blue-500">Processing...</span>';
+
+            try {
+                const response = await fetch('/api/core/upload/', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Token ' + token },
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerHTML = `<span class="text-green-600">✓ Uploaded #${data.id}</span>`;
+                    // Trigger auto-search on processing complete
+                    onProcessingComplete(data.id);
+                    // Clear inputs
+                    event.target.value = "";
+                    if (sourceInput.value === 'LOCAL') {
+                        marketName.value = "";
+                        marketLocation.value = "";
+                    }
+                } else {
+                    statusDiv.innerHTML = `<span class="text-red-600">Error: ${JSON.stringify(data)}</span>`;
+                }
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerHTML = '<span class="text-red-600">Network Error</span>';
+            }
+        }
+
+        // --- 4. URL UPLOAD HANDLER ---
+        async function handleUrlUpload() {
+            const statusDiv = document.getElementById('urlUploadStatus');
+            const urlInput = document.getElementById('urlInput');
+            const sourceInput = document.getElementById('urlSourceInput');
+            const marketName = document.getElementById('urlMarketName');
+            const marketLocation = document.getElementById('urlMarketLocation');
+
+            if (!urlInput.value) {
+                statusDiv.innerHTML = '<span class="text-red-600">Please enter a URL</span>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('image_url', urlInput.value);
+            formData.append('source', sourceInput.value);
+
+            if (sourceInput.value === 'LOCAL') {
+                formData.append('market_name', marketName.value);
+                formData.append('market_location', marketLocation.value);
+            }
+
+            statusDiv.innerHTML = '<span class="text-blue-500">Processing...</span>';
+
+            try {
+                const response = await fetch('/api/core/upload/', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Token ' + token },
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.innerHTML = `<span class="text-green-600">✓ Uploaded #${data.id}</span>`;
+                    // Trigger auto-search on processing complete
+                    onProcessingComplete(data.id);
+                    // Clear inputs
+                    urlInput.value = "";
+                    if (sourceInput.value === 'LOCAL') {
+                        marketName.value = "";
+                        marketLocation.value = "";
+                    }
+                } else {
+                    statusDiv.innerHTML = `<span class="text-red-600">Error: ${JSON.stringify(data)}</span>`;
+                }
+            } catch (error) {
+                console.error(error);
+                statusDiv.innerHTML = '<span class="text-red-600">Network Error</span>';
+            }
+        }
+
+        // --- 5. TEXT SEARCH ---
+        async function searchImages() {
+            const query = document.getElementById('searchInput').value;
+            if (!query) return;
+            fetchResults(`/api/core/search/?q=${encodeURIComponent(query)}`);
+        }
+
+        // --- 6. VISUAL SIMILARITY SEARCH ---
+        async function searchSimilar(id) {
+            document.getElementById('searchInput').value = `Similar to Item #${id}`;
+            fetchResults(`/api/core/search/?similar_to=${id}`);
+        }
+
+        // --- 7. SHARED FETCH LOGIC ---
+        async function fetchResults(url) {
+            const resultsDiv = document.getElementById('searchResults');
+            const containerDiv = document.getElementById('searchResultsContainer');
+            
+            containerDiv.classList.remove('hidden');
+            resultsDiv.innerHTML = '<div class="col-span-4 text-center py-10"><div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-black mx-auto mb-4"></div><p class="text-gray-400">Searching...</p></div>';
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 
+                        'Authorization': 'Token ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultsDiv.innerHTML = "";
+                    
+                    if (data.length === 0) {
+                        resultsDiv.innerHTML = '<div class="col-span-4 text-center py-10"><p class="text-gray-400">No matches found</p></div>';
+                        return;
+                    }
+
+                    // Render Cards
+                    data.forEach(item => {
+                        const card = document.createElement('div');
+                        card.className = "bg-white border border-gray-100 rounded-2xl overflow-hidden hover:border-black transition-all group cursor-pointer";
+                        card.innerHTML = `
+                            <div class="aspect-square bg-gray-50 overflow-hidden">
+                                <img src="${item.image}" alt="Item" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            </div>
+                            <div class="p-4">
+                                <p class="font-bold text-sm mb-1">${item.source}</p>
+                                ${item.market_name ? `<p class="text-xs text-gray-400 mb-3">${item.market_name}</p>` : ''}
+                                <button onclick="searchSimilar(${item.id})" class="w-full bg-gray-50 hover:bg-black hover:text-white px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all">
+                                    🔍 Find Similar
+                                </button>
+                            </div>
+                        `;
+                        resultsDiv.appendChild(card);
+                    });
+                } else {
+                    resultsDiv.innerHTML = `<div class="col-span-4 text-center py-10"><span class="text-red-600">Error: ${JSON.stringify(data)}</span></div>`;
+                }
+            } catch (error) {
+                console.error(error);
+                resultsDiv.innerHTML = '<div class="col-span-4 text-center py-10"><span class="text-red-600">Network Error</span></div>';
+            }
+        }
+
+        // --- 8. CLEAR RESULTS ---
+        function clearSearchResults() {
+            document.getElementById('searchResultsContainer').classList.add('hidden');
+            document.getElementById('searchResults').innerHTML = '';
+            document.getElementById('searchInput').value = '';
+        }
+    </script>
+{% endblock %}
