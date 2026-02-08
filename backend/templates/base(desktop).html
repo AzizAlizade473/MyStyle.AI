@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -49,19 +50,24 @@
 <body class="bg-white text-black antialiased h-screen overflow-hidden font-sans">
     <div class="flex h-full w-full">
                 <!-- ================= 1. SIDEBAR ================= -->
-        <aside id="sidebar" class="w-64 border-r border-gray-100 flex flex-col p-6 shrink-0 bg-white hidden" x-data="sidebarComponent()">
+        <aside id="sidebar" class="w-64 border-r border-gray-100 flex flex-col p-6 shrink-0 bg-white hidden" x-data="{
+            isHome: () => window.location.pathname === '/' || window.location.pathname.includes('/home'),
+            isWardrobe: () => window.location.pathname.includes('/wardrobe'),
+            isProfile: () => window.location.pathname.includes('/profile'),
+            get currentPath() { return window.location.pathname; }
+        }">
             <div class="mb-12">
                 <h1 class="text-2xl font-bold tracking-tighter italic">Espresso.</h1>
             </div>
 
             <nav class="flex-1">
-                <button @click="window.location.href = isHome? '#' : '{% url 'home' %}'" :class="isHome ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
+                <button @click="window.location.href = '{% url 'home' %}'" :class="isHome() ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
                     <i class="fas fa-home w-5"></i> Dashboard
                 </button>
-                <button :class="isWardrobe ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
+                <button :class="isWardrobe() ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
                     <i class="fas fa-layer-group w-5"></i> My Closet
                 </button>
-                <button @click="window.location.href = isProfile? '#' : '{% url 'profile_page' %}'" :class="isProfile ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
+                <button @click="window.location.href = '{% url 'profile_page' %}'" :class="isProfile() ? 'active' : ''" class="sidebar-item w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400">
                     <i class="fas fa-user-circle w-5"></i> Profile
                 </button>
             </nav>
@@ -83,44 +89,13 @@
 {% block scripts %}
     {{ block.super }}
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const token = localStorage.getItem("userToken");
-            const sidebar = document.getElementById("sidebar");
-
-            if (!token || !sidebar) return;
-
-            try {
-                const response = await fetch("/api/auth/profile/", {
-                    headers: {
-                        "Authorization": `Token ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    sidebar.classList.remove("hidden");
-                    const data = await response.json();
-                    document.querySelector('#UserInitials').innerText = data.username.charAt(0).toUpperCase();
-                    document.querySelector('#UserName').innerText = data.username;
-                } else {
-                    localStorage.removeItem("userToken");
-                }
-            } catch (err) {
-                console.error("Auth check failed");
-            }
-        });
-
-        window.logout = function logout() {
-            localStorage.removeItem('userToken');
-            window.location.href = "{% url 'login' %}";
-        }
-
-        function sidebarComponent() {
-            return {
-                isHome: window.location.pathname === '{% url "home" %}',
-                isWardrobe: window.location.pathname === '#',
-                isProfile: window.location.pathname === '{% url "profile_page" %}',
-            }
-        }
+        window.APP_URLS = {
+            profile: "{% url 'profile_page' %}",
+            login: "{% url 'login' %}",
+            home: "{% url 'home' %}"
+        };
     </script>
+    <script src="{% static 'js/ui.js' %}"></script>
+    <script src="{% static 'js/search.js' %}"></script>
 {% endblock %}
 </html>

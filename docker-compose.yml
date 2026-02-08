@@ -20,7 +20,7 @@ services:
     volumes:
       - ./backend:/app
       - ./media_local:/app/media  # Local storage for dev
-      - static_volume:/app/static
+      - static_volume:/app/staticfiles
       - clip_cache:/root/.cache/clip
     env_file:
       - .env
@@ -50,11 +50,12 @@ services:
       - ./frontend:/usr/share/nginx/html  # Your HTML/JS goes here
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./media_local:/app/media # So Nginx can serve the images users uploaded
-      - static_volume:/app/static
+      - static_volume:/app/staticfiles
     depends_on:
       - backend
 
 volumes:
   postgres_data:
   static_volume:
+  media_local:
   clip_cache:

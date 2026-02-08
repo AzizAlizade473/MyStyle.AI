@@ -52,6 +52,7 @@ postgres_data/
 media_data/
 backend/media/
 media_local/uploads/
+staticfiles/
 
 # --- IDEs & Editors ---
 .idea/
