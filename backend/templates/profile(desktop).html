@@ -6,7 +6,8 @@
         <div class="mb-12">
             <p id="loading"></p>
         </div>
-        <h2 class="text-4xl font-bold tracking-tighter mb-12">Account Settings</h2>
+        <h2 class="text-4xl font-bold tracking-tighter">Account Settings</h2>
+        <h2 class="text-4xl tracking-tighter mb-8" x-text="t('hello_user')"></h2>
         
         <div id="errorDiv" class="bg-red-50 border border-red-200 text-red-600 text-sm font-bold rounded-lg p-4 mb-12 hidden">
             <p id="errorMsg"></p>
@@ -15,7 +16,7 @@
         <div class="grid grid-cols-2 gap-12">
             <div class="space-y-12">
                 <div>
-                    <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6">Visual Identity</h3>
+                    <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6" x-text="t('vis_idn')"></h3>
                     <div class="flex items-center gap-6">
                         <div id="ProfileP" class="w-24 h-24 rounded-full bg-black flex items-center justify-center text-4xl font-bold text-white shadow-2xl"></div>
                         <div>
@@ -26,32 +27,32 @@
                     </div>
                 </div>
                 <div>
-                    <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6">Personal Info</h3>
+                    <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6" x-text="t('per_info')"></h3>
                     <div class="space-y-6">
                         <div class="flex justify-between items-center py-4 border-b border-gray-200">
-                            <span class="font-bold text-sm">Gender</span>
+                            <span class="font-bold text-sm" x-text="t('gender')"></span>
                             <span class="text-xs font-black text-black" id="Gender"></span>
                         </div>
                         <div class="flex justify-between items-center py-4 border-b border-gray-200">
-                            <span class="font-bold text-sm">Preferences</span>
+                            <span class="font-bold text-sm" x-text="t('prefs')"></span>
                             <span class="text-xs font-black text-black" id="Prefs"></span>
                         </div>
                     </div>
                 </div>
 
                 <div>
-                    <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6">My Sizes</h3>
+                    <h3 class="text-[10px] font-black text-gray-300 uppercase tracking-[0.3em] mb-6" x-text="t('my_sizes')"></h3>
                     <div class="grid grid-cols-3 gap-4">
                         <div class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
-                            <p class="text-[10px] font-black text-gray-400 mb-1">TOPS</p>
+                            <p class="text-[10px] font-black text-gray-400 mb-1" x-text="t('cat_top')"></p>
                             <p class="font-bold text-2xl" id="Top"></p>
                         </div>
                         <div class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
-                            <p class="text-[10px] font-black text-gray-400 mb-1">BOTTOMS</p>
+                            <p class="text-[10px] font-black text-gray-400 mb-1" x-text="t('cat_pants')"></p>
                             <p class="font-bold text-2xl" id="Bottom"></p>
                         </div>
                         <div class="p-6 border border-gray-100 rounded-[24px] text-center cursor-pointer hover:border-black bg-gray-50 transition-all">
-                            <p class="text-[10px] font-black text-gray-400 mb-1">SHOES</p>
+                            <p class="text-[10px] font-black text-gray-400 mb-1" x-text="t('cat_shoes')"></p>
                             <p class="font-bold text-2xl" id="Shoe"></p>
                         </div>
                     </div>
@@ -59,20 +60,20 @@
             </div>
 
             <div class="bg-gray-50 rounded-[40px] p-10 border border-gray-100">
-                    <h3 class="text-lg font-bold mb-6">Preferences</h3>
+                    <h3 class="text-lg font-bold mb-6" x-text="t('per_info')"></h3>
                     <div class="space-y-6">
                     <div class="flex justify-between items-center py-4 border-b border-gray-200">
-                        <span class="font-bold text-sm">System Language</span>
+                        <span class="font-bold text-sm" x-text="t('lang_pref')"></span>
                         <div class="flex gap-4">
-                            <button class="text-xs font-black uppercase" :class="lang==='az' ? 'text-black' : 'text-gray-300'">AZ</button>
-                            <button class="text-xs font-black uppercase" :class="lang==='en' ? 'text-black' : 'text-gray-300'">EN</button>
-                        </div>
+                        <button @click="lang='az'" :class="lang==='az' ? 'text-black border-b-2 border-black' : 'text-gray-300'" class="text-xs font-black uppercase pb-1">AZ</button>
+                        <button @click="lang='en'" :class="lang==='en' ? 'text-black border-b-2 border-black' : 'text-gray-300'" class="text-xs font-black uppercase pb-1">EN</button>
+                    </div>
                     </div>
                     <div class="flex justify-between items-center py-4 border-b border-gray-200">
-                        <span class="font-bold text-sm">Currency</span>
+                        <span class="font-bold text-sm" x-text="t('currency')"></span>
                         <span class="text-xs font-black text-black">AZN (₼)</span>
                     </div>
-                    <button onclick="logout()" class="w-full text-center text-red-500 font-black text-xs uppercase tracking-widest pt-8">Log out of Espresso</button>
+                    <button onclick="logout()" class="w-full text-center text-red-500 font-black text-xs uppercase tracking-widest pt-8" x-text="t('logout')"></button>
                     </div>
             </div>
         </div>

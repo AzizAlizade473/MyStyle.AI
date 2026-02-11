@@ -12,8 +12,8 @@
             </div>
         </div>
         <div class="relative z-10">
-            <h1 class="text-6xl font-bold tracking-tighter leading-tight mb-6">Style,<br>Simplified.</h1>
-            <p class="text-gray-400 text-sm max-w-xs leading-relaxed">Your personalized AI stylist. Digitalize your wardrobe, find matches from local boutiques, and elevate your daily look.</p>
+            <h1 class="text-6xl font-bold tracking-tighter leading-tight mb-6" x-text="t('app_title')"></h1>
+            <p class="text-gray-400 text-sm max-w-xs leading-relaxed" x-text="t('app_desc')"></p>
         </div>
     </div>
 
@@ -32,7 +32,7 @@
 
             <div class="w-full max-w-md px-10">
                 <div class="mb-10">
-                    <h2 class="text-4xl font-bold tracking-tighter mb-2" x-text="t('sign_in')"></h2>
+                    <h2 class="text-4xl font-bold tracking-tighter mb-2" x-text="t('welcome')"></h2>
                     <p class="text-gray-400 font-medium" x-text="t('auth_subtitle')"></p>
                 </div>
 
@@ -42,7 +42,7 @@
                         <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2" x-text="t('username')"></label>
                         <div class="relative">
                             <i class="fas fa-user absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
-                            <input type="text" id="username" placeholder="username" class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-sm focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" required>
+                            <input type="text" id="username" :placeholder="t('username')" class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-sm focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" required>
                         </div>
                     </div>
 

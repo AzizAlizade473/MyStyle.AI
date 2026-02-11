@@ -6,20 +6,25 @@ document.addEventListener('alpine:init', () => {
         // 2. The Dictionary
         dictionary: {
             en: { 
+                app_title: "Style,\nSimplified.",
+                app_desc: "Your personalized AI stylist. Digitalize your wardrobe, find matches from local boutiques, and elevate your daily look.",
                 auth_subtitle: "Your Personal AI Stylist.", 
-                sign_in: "Sign In", 
+                welcome: "Welcome",
+                sign_up: "Sign Up",
                 create_account: "Create", 
                 no_account: "New member? Sign Up", 
                 has_account: "Member? Sign In", 
-                hello_user: "Hi, Style Icon", 
+                hello_user: "Hi, ", 
                 weather_tip: "Rain alert. Trench coat recommended.", 
                 snap_match: "Snap & Match", 
                 snap_desc: "Visual Styling", 
                 paste_link: "Paste Link", 
                 write_prompt: "Write Prompt", 
                 recent_history: "Recent Matches", 
-                wardrobe: "Wardrobe", 
-                items: "items", 
+                wardrobe: "Wardrobe",
+                dashboard: "Home", 
+                profile: "Profile",
+                items: "items",
                 all: "All", 
                 cat_top: "Tops", 
                 cat_pants: "Bottoms", 
@@ -35,15 +40,29 @@ document.addEventListener('alpine:init', () => {
                 visit_shop: "Map", 
                 buy_online: "Order",
                 username: "Username",
-                password: "Password"
+                password: "Password",
+                confirm_password: "Confirm Password",
+                full_name: "Full Name (Optional)",
+                first_name: "First Name",
+                last_name: "Last Name",
+                premium_member: "Premium Member",
+                lang_pref: "Language Preference",
+                per_info: "Personal Informations",
+                prefs: "Preferences",
+                currency: "Currency",
+                vis_idn: "Visual Identity"
+
             },
             az: { 
+                app_title: "Sadələşdirilmiş,\nStil",
+                app_desc: "Fərdi Sİ stilistiniz. Qarderobunuzu rəqəmsallaşdırın, yerli butiklərdən uyğunluqlar tapın və gündəlik görünüşünüzü daha da gözəlləşdirin.",
                 auth_subtitle: "Sizin AI Stilistiniz.", 
-                sign_in: "Daxil Ol", 
+                welcome: "Xoş Gördük",
+                sign_up: "Hesab Yarat",
                 create_account: "Yarat", 
                 no_account: "Yeni? Qeydiyyat", 
                 has_account: "Üzvsən? Giriş", 
-                hello_user: "Salam, Stil İkonu", 
+                hello_user: "Salam, ", 
                 weather_tip: "Yağış yağır. Plaş məsləhətdir.", 
                 snap_match: "Şəkil Çək", 
                 snap_desc: "Vizual Analiz", 
@@ -51,6 +70,8 @@ document.addEventListener('alpine:init', () => {
                 write_prompt: "Yazı", 
                 recent_history: "Son Aktivlik", 
                 wardrobe: "Qarderob", 
+                dashboard: "Ana Ekran", 
+                profile: "Profil",
                 items: "geyim", 
                 all: "Hamısı", 
                 cat_top: "Üst", 
@@ -67,24 +88,46 @@ document.addEventListener('alpine:init', () => {
                 visit_shop: "Xəritə", 
                 buy_online: "Sifariş",
                 username: "İstifadəçi adı",
-                password: "Şifrə"
+                password: "Şifrə",
+                confirm_password: "Şifrəni Təsdiqlə",
+                full_name: "Tam Adınız (İstəyə bağlı)",
+                first_name: "Ad",
+                last_name: "Soyad",
+                premium_member: "Premium İstifadəçi",
+                lang_pref: "Dil Seçimim",
+                per_info: "Şəxsi Məlumatlarım",
+                prefs: "Seçimlərim",
+                currency: "Valyuta",
+                vis_idn: "Visual Kimlik"
+            }
+        },
+        
+        init() {
+            console.log("Language initialized:", this.lang);
+            
+            // Watcher: Whenever 'lang' changes, save it to LocalStorage automatically
+            this.$watch('lang', (val) => {
+                localStorage.setItem('app_lang', val);
+            });
+        },
+
+        // 4. TRANSLATE FUNCTION
+        t(key) {
+            // Safety check: if dictionary is missing key, return the key itself
+            try {
+                return this.dictionary[this.lang][key] || key;
+            } catch (e) {
+                return key;
             }
         },
 
-        // 3. Helper Function to Get Text
-        // Usage in HTML: <span x-text="t('sign_in')"></span>
-        t(key) {
-            // Returns the translation, or the key itself if missing
-            return this.dictionary[this.lang][key] || key;
-        },
-
-        // 4. Function to Change Language
+        // 5. CHANGE LANGUAGE
         setLang(val) {
-            this.lang = val;
-            localStorage.setItem('app_lang', val);
+            this.lang = val; 
+            // The $watch above handles the saving!
         },
 
-        // 5. Helper to check current language (for active buttons)
+        // 6. CHECK ACTIVE
         is(val) {
             return this.lang === val;
         }
