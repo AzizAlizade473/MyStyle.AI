@@ -113,7 +113,7 @@ async function fetchResults(url) {
     const containerDiv = document.getElementById('searchResultsContainer');
 
     containerDiv.classList.remove('hidden');
-    resultsDiv.innerHTML = '<div class="col-span-4 text-center py-10"><div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-black mx-auto mb-4"></div><p class="text-gray-400">Searching...</p></div>';
+    resultsDiv.innerHTML = '<div id="loading" class="col-span-4 text-center py-10"><div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-black mx-auto mb-4"></div><p class="text-gray-400">Searching...</p></div>';
     
     try {
         const token = localStorage.getItem('userToken');
@@ -126,14 +126,20 @@ async function fetchResults(url) {
                     }
                 });
 
-        if (!response.ok) throw new Error('Search failed');
+        if (!response.ok) {
+            resultsDiv.querySelector("#loading").classList.add("hidden");
+            throw new Error('Search failed')
+        };
         const data = await response.json();
 
         // Basic rendering: adapt to your API shape
         if (!Array.isArray(data)) {
+            resultsDiv.querySelector("#loading").classList.add("hidden");
             resultsDiv.innerHTML = '<div class="col-span-4 text-center py-10"><p class="text-gray-400">No results</p></div>';
             return;
         }
+
+        resultsDiv.querySelector("#loading").classList.add("hidden");
 
         const itemsHtml = data.map(item => {
             const card = document.createElement('div');

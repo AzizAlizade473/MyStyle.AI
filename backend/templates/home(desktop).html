@@ -2,13 +2,13 @@
 
 {% block content %}
 
-    <div x-show="isProcessing" class="flex-1 flex flex-col items-center justify-center p-10 bg-white hidden">
+    <div x-show="isProcessing" class="flex-1 flex flex-col items-center justify-center p-10 bg-white">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-black mb-6"></div>
-        <p class="text-lg font-bold" x-text="t[lang].processing_msg"></p>
+        <p class="text-lg font-bold" x-text="t('processing_msg')"></p>
     </div>
 
     <!-- VIEW: HOME (DESKTOP GRID) -->
-    <div x-show="currentTab === 'home' && !isProcessing" class="flex-1 overflow-y-auto p-10">
+    <div class="flex-1 overflow-y-auto p-10">
         <div class="flex gap-8 mb-12">
             <!-- Weather Card (WIDE) -->
             <div @click="openDetail(weatherProduct)" class="flex-1 bg-black text-white p-8 rounded-[32px] flex items-center justify-between group cursor-pointer relative overflow-hidden shadow-xl">
@@ -17,7 +17,7 @@
                     <div class="bg-white/10 backdrop-blur-md p-6 rounded-3xl"><i class="fas fa-cloud-showers-heavy text-5xl"></i></div>
                     <div>
                         <h3 class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2">Morning Update • Baku, AZ</h3>
-                        <p class="text-3xl font-bold leading-tight" x-text="t[lang].weather_tip"></p>
+                        <p class="text-3xl font-bold leading-tight" x-text="t('weather_tip')"></p>
                         <button class="mt-4 bg-white text-black px-6 py-2 rounded-full text-xs font-bold uppercase tracking-widest hover:scale-105 transition-transform">Discover Look</button>
                     </div>
                 </div>
@@ -79,8 +79,8 @@
                         <i class="fas fa-camera"></i>
                     </div>
                     <div class="text-center">
-                        <h4 class="font-bold text-lg uppercase tracking-tighter" x-text="t[lang].snap_match"></h4>
-                        <p class="text-gray-400 text-xs mt-1" x-text="t[lang].snap_desc">Upload an image of your outfit</p>
+                        <h4 class="font-bold text-lg uppercase tracking-tighter" x-text="t('snap_match')"></h4>
+                        <p class="text-gray-400 text-xs mt-1" x-text="t('snap_desc')">Upload an image of your outfit</p>
                     </div>
                 </div>
 
@@ -114,7 +114,7 @@
                         <i class="fas fa-link"></i>
                     </div>
                     <div class="text-center">
-                        <h4 class="font-bold text-lg uppercase tracking-tighter" x-text="t[lang].paste_link"></h4>
+                        <h4 class="font-bold text-lg uppercase tracking-tighter" x-text="t('paste_link')"></h4>
                         <p class="text-gray-400 text-xs mt-1">Direct match from URL</p>
                     </div>
                 </div>
@@ -182,7 +182,7 @@
 
         <!-- History Horizontal -->
         <div class="flex justify-between items-end mb-6">
-            <h3 class="font-bold text-xl tracking-tight" x-text="t[lang].recent_history"></h3>
+            <h3 class="font-bold text-xl tracking-tight" x-text="t('recent_history')"></h3>
             <button class="text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-black">Delete All</button>
         </div>
         <div class="flex gap-4 overflow-x-auto hide-scroll pb-10">

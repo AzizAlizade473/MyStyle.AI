@@ -32,14 +32,14 @@
 
             <div class="w-full max-w-md px-10">
                 <div class="mb-10">
-                    <h2 class="text-4xl font-bold tracking-tighter mb-2" x-text="authMode === 'login' ? t[lang].sign_in : t[lang].create_account"></h2>
-                    <p class="text-gray-400 font-medium" x-text="t[lang].auth_subtitle"></p>
+                    <h2 class="text-4xl font-bold tracking-tighter mb-2" x-text="t('sign_in')"></h2>
+                    <p class="text-gray-400 font-medium" x-text="t('auth_subtitle')"></p>
                 </div>
 
                 <div class="space-y-6">
                     <!-- Username Field -->
                     <div class="animate-fade-in">
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Username</label>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2" x-text="t('username')"></label>
                         <div class="relative">
                             <i class="fas fa-user absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
                             <input type="text" id="username" placeholder="username" class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-sm focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" required>
@@ -48,7 +48,7 @@
 
                     <!-- Password -->
                     <div class="animate-fade-in">
-                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Password</label>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2" x-text="t('password')"></label>
                         <div class="relative">
                             <i class="fas fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-gray-300"></i>
                             <input type="password" id="password" placeholder="••••••••" class="w-full bg-gray-50 border border-gray-100 rounded-2xl py-4 pl-12 pr-4 font-bold text-sm focus:bg-white focus:border-black focus:ring-1 focus:ring-black outline-none transition-all" required>
@@ -64,64 +64,18 @@
 
                 <!-- Submit Button -->
                 <button type="submit" class="w-full bg-black text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] mt-10 shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-3">
-                    <span>Login</span>
+                    <span x-text="t('sign_in')"></span>
                     <i class="fas fa-arrow-right"></i>
                 </button>
 
                 <!-- Switch Auth Mode Link-->
                 <div class="mt-6 text-center text-gray-400 text-xs">
-                    <span class="text-gray-400"> Don't have an account?</span>
-                    <a href="{% url 'register' %}" class="text-black font-bold underline ml-1">Register</a>
+                    <span class="text-gray-400" x-text="t('no_account')"></span>
+                    <a href="{% url 'register' %}" class="text-black font-bold underline ml-1" x-text="t('register_link')"></a>
                 </div>
             </div>
         </div>
     </form>
 </div>
 
-{% endblock %}
-
-<!-- ================= SCRIPTS BLOCK ================= -->
-{% block scripts %}
-<script>
-    const errorContainer = document.getElementById('errorContainer');
-    const errorDiv = document.getElementById('errorMsg');
-
-    // Hide error when user starts typing
-    document.getElementById('username').addEventListener('input', () => {
-        errorContainer.classList.add('hidden');
-    });
-    document.getElementById('password').addEventListener('input', () => {
-        errorContainer.classList.add('hidden');
-    });
-
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        try {
-            // 1. Send Login Request
-            const response = await fetch('/api/auth/login/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                // 2. SAVE THE TOKEN
-                localStorage.setItem('userToken', data.token);
-                // 3. Redirect to Home
-                window.location.href = `{% url 'profile_page' %}`;
-            } else {
-                errorDiv.innerText = "Invalid credentials";
-                errorContainer.classList.remove('hidden');
-            }
-        } catch (err) {
-            errorDiv.innerText = "Server Error";
-            errorContainer.classList.remove('hidden');
-        }
-    });
-</script>
 {% endblock %}
