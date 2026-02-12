@@ -5,7 +5,7 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # App Routes
+    # Api Routes
     path('api/core/', include('core.urls')),
     path('api/auth/', include('users.urls')),
 
@@ -15,4 +15,5 @@ urlpatterns = [
     path('new_front/', TemplateView.as_view(template_name='index(desktop).html'), name='new_front'), # Testing purposes
     path('register/', TemplateView.as_view(template_name='register(desktop).html'), name='register'),
     path('profile/', TemplateView.as_view(template_name='profile(desktop).html'), name='profile_page'),
+    path('image/seach/',TemplateView.as_view(template_name='image_search(desktop).html'), name='image_search_view' )
 ]

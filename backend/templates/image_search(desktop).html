@@ -1,0 +1,135 @@
+{% extends "base(desktop).html" %}
+
+{% block content %}
+<div class="absolute inset-0 z-[100] bg-white flex flex-col h-full overflow-hidden animate-fade-in" x-data="imageSearchComponent()">
+                    
+    <!-- BREADCRUMBS / TOP BAR -->
+    <div class="px-10 h-20 border-b border-gray-100 flex items-center justify-between bg-white shrink-0">
+        <button @click="window.location.href = '{% url 'home' %}'" class="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-gray-400 hover:text-black">
+            <i class="fas fa-times"></i> Cancel styling
+        </button>
+        <div class="flex gap-8">
+            <span class="text-xs font-black uppercase tracking-widest" :class="step==='input'?'text-black':'text-gray-200'">01. Input</span>
+            <span class="text-xs font-black uppercase tracking-widest" :class="step==='category'?'text-black':'text-gray-200'">02. Selection</span>
+            <span class="text-xs font-black uppercase tracking-widest" :class="['results','loading'].includes(step)?'text-black':'text-gray-200'">03. Results</span>
+        </div>
+        <div class="w-20"></div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto flex justify-center">
+        <div class="w-full max-w-4xl p-10">
+            
+            <!-- STEP: INPUT -->
+            <div x-show="step === 'input'" class="space-y-12 animate-fade-in">
+                <div x-show="stylingOwnedItem" class="bg-gray-50 p-10 rounded-[40px] flex items-center gap-10 border border-gray-100">
+                    <img :src="stylingOwnedItem?.image" class="w-48 h-64 object-cover rounded-3xl shadow-xl">
+                    <div>
+                        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Selected Item</p>
+                        <h2 class="text-4xl font-bold tracking-tighter" x-text="stylingOwnedItem?.name"></h2>
+                        <p class="text-gray-500 mt-4 max-w-sm">We are finding matches for this piece from your other clothes and 80+ local & global shops.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-5xl font-bold tracking-tighter mb-8" x-text="t('desc_style')"></h2>
+                    <textarea x-model="userInput" class="w-full bg-gray-50 border border-gray-100 rounded-[32px] p-10 text-2xl h-64 focus:border-black outline-none resize-none shadow-sm"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-10">
+                    <div>
+                        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Style</p>
+                        <div class="flex flex-wrap gap-2">
+                            <template x-for="style in styles">
+                                <button @click="selectedStyle = (selectedStyle === style ? null : style)" class="px-6 py-3 border rounded-full text-xs font-bold transition-all uppercase tracking-widest" :class="selectedStyle === style ? 'bg-black text-white border-black shadow-lg' : 'bg-white text-gray-400 border-gray-100'"><span x-text="style"></span></button>
+                            </template>
+                        </div>
+                    </div>
+                    <div class="space-y-4">
+                        <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">AI Filters</p>
+                        <div class="flex items-center justify-between p-6 border border-gray-100 rounded-[24px] bg-gray-50">
+                            <div class="flex items-center gap-3"><i class="fas fa-leaf text-green-600"></i><p class="font-bold text-sm">Vintage & Second-Hand Mode</p></div>
+                            <input type="checkbox" x-model="isVintageMode" class="w-6 h-6 accent-black">
+                        </div>
+                        <div class="flex items-center justify-between p-6 border border-gray-100 rounded-[24px] bg-gray-50">
+                            <div class="flex items-center gap-3"><i class="fas fa-map-marker-alt text-blue-600"></i><p class="font-bold text-sm">Hyper-Local (Same Day Pick-up)</p></div>
+                            <input type="checkbox" x-model="isHyperLocal" class="w-6 h-6 accent-black">
+                        </div>
+                    </div>
+                </div>
+                <button @click="step='category'" class="w-full bg-black text-white py-6 rounded-2xl font-black tracking-widest uppercase shadow-2xl active:scale-[0.99] transition-all" x-text="t('next')"></button>
+            </div>
+
+            <!-- STEP: CATEGORY -->
+            <div x-show="step === 'category'" class="animate-fade-in">
+                <h2 class="text-5xl font-bold tracking-tighter mb-12">Match this with?</h2>
+                <div class="grid grid-cols-4 gap-6">
+                    <template x-for="cat in categories">
+                        <div @click="selectTargetCategory(cat.id)" class="p-12 border border-gray-100 rounded-[40px] flex flex-col items-center gap-6 cursor-pointer hover:border-black transition-all bg-gray-50 active:scale-95 group">
+                            <i :class="cat.icon" class="text-5xl text-gray-200 group-hover:text-black transition-colors"></i>
+                            <span class="font-black text-xs uppercase tracking-widest text-gray-400 group-hover:text-black" x-text="t(cat.key)"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- STEP: LOADING -->
+            <div x-show="step === 'loading'" class="flex flex-col items-center justify-center py-40">
+                <div class="w-20 h-20 border-8 border-gray-100 border-t-black rounded-full animate-spin mb-10"></div>
+                <h3 class="text-4xl font-bold tracking-tighter" x-text="t('finding_matches')"></h3>
+                <p class="text-xs text-gray-400 font-black uppercase tracking-[0.5em] mt-6" x-text="t('ai_desc')"></p>
+            </div>
+
+            <!-- STEP: RESULTS -->
+            <div x-show="step === 'results'" class="space-y-20 animate-fade-in pb-40">
+                    <div x-show="closetMatches.length > 0">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mb-10">Your Digital Closet Synergy</h4>
+                        <div class="grid grid-cols-3 gap-8">
+                            <template x-for="item in closetMatches">
+                                <div @click="openDetail(item, true)" class="bg-white rounded-[40px] p-6 border border-gray-100 flex flex-col gap-6 cursor-pointer relative shadow-sm hover:border-black transition-all">
+                                    <div class="aspect-[3/4] bg-gray-50 rounded-[30px] overflow-hidden"><img :src="item.image" class="w-full h-full object-cover"></div>
+                                    <div>
+                                        <span class="text-[9px] font-black bg-black text-white px-3 py-1 rounded-full uppercase tracking-widest">OWNED</span>
+                                        <h4 class="font-bold text-xl mt-4 tracking-tight" x-text="item.name"></h4>
+                                        <p class="text-xs text-gray-400 mt-2 font-bold uppercase tracking-widest">Available in your locker</p>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-10">
+                            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Recommended Purchases</h4>
+                            <button @click="vibeCheck()" class="text-xs font-black px-6 py-2 border-2 border-black rounded-full uppercase tracking-widest hover:bg-black hover:text-white transition-all">Vibe Check Vote</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8">
+                            <template x-for="item in filteredResults">
+                                <div @click="openDetail(item)" class="bg-white rounded-[48px] p-8 border border-gray-100 shadow-sm flex gap-10 cursor-pointer hover:border-black transition-all group">
+                                    <div class="w-48 h-64 bg-gray-50 rounded-[32px] overflow-hidden shrink-0 border border-gray-100 relative">
+                                        <img :src="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                        <template x-if="item.isVintage"><div class="absolute bottom-4 left-4 right-4 bg-green-900 text-white text-[9px] text-center font-black py-2 rounded-full uppercase tracking-widest">Vintage</div></template>
+                                    </div>
+                                    <div class="flex-1 flex flex-col justify-between py-4">
+                                        <div>
+                                            <div class="flex justify-between items-center mb-4">
+                                                <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-400" x-text="item.brand"></span>
+                                                <span class="text-[9px] font-black text-white bg-black px-3 py-1 rounded-full" x-text="item.isLocal ? 'IN STORE' : 'WEB'"></span>
+                                            </div>
+                                            <h4 class="text-3xl font-bold leading-none tracking-tighter" x-text="item.name"></h4>
+                                            <p class="text-sm text-gray-400 font-bold mt-4 uppercase tracking-widest" x-text="item.isLocal ? 'Ganjlik Mall • Baku' : item.brand"></p>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-3xl font-bold tracking-tighter" x-text="item.price"></span>
+                                            <span class="text-xs font-black border-b-2 border-black pb-1 uppercase tracking-widest">Product Details</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
