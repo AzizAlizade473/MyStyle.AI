@@ -15,5 +15,6 @@ urlpatterns = [
     path('new_front/', TemplateView.as_view(template_name='index(desktop).html'), name='new_front'), # Testing purposes
     path('register/', TemplateView.as_view(template_name='register(desktop).html'), name='register'),
     path('profile/', TemplateView.as_view(template_name='profile(desktop).html'), name='profile_page'),
-    path('image/seach/',TemplateView.as_view(template_name='image_search(desktop).html'), name='image_search_view' )
+    path('image/search/',TemplateView.as_view(template_name='image_search(desktop).html'), name='image_search_view'),
+    path('image/search/results/' ,TemplateView.as_view(template_name='search_results(desktop).html'), name='image_results_view'),
 ]

@@ -51,9 +51,7 @@ document.addEventListener('alpine:init', () => {
                 per_info: "Personal Informations",
                 prefs: "Preferences",
                 currency: "Currency",
-                vis_idn: "Visual Identity",
-                desc_style: "Describe your style"
-
+                vis_idn: "Visual Identity"
             },
             az: { 
                 app_title: "Sadələşdirilmiş,\nStil",
@@ -102,7 +100,6 @@ document.addEventListener('alpine:init', () => {
                 prefs: "Seçimlərim",
                 currency: "Valyuta",
                 vis_idn: "Visual Kimlik",
-                desc_style: "Stilini Ifadə Et"
             }
         },
         
@@ -174,7 +171,9 @@ document.addEventListener('alpine:init', () => {
                     cat_acc: "Acc",
                     next: "Continue",
                     finding_matches: "Finding Perfect Matches",
-                    ai_desc: "Checking 80+ inventories..."
+                    ai_desc: "Checking 80+ inventories...",
+                    desc_style: "Describe your style"
+
                 },
                 az: {
                     cat_top: "Üst",
@@ -183,7 +182,8 @@ document.addEventListener('alpine:init', () => {
                     cat_acc: "Aksesuar",
                     next: "Davam Et",
                     finding_matches: "Mükəmməl Uyğunluqlar Tapılır",
-                    ai_desc: "80+ mağaza taranır..."
+                    ai_desc: "80+ mağaza taranır...",
+                    desc_style: "Stilini Ifadə Et"
                 }
             };
             try {
@@ -244,10 +244,14 @@ document.addEventListener('alpine:init', () => {
                     return r.json();
                 })
                 .then(data => {
-                    this.allResults = data.results || [];
+                    // API returns array directly
+                    this.allResults = Array.isArray(data) ? data : (data.results || []);
                     this.closetMatches = data.closet_matches || [];
                     this.filteredResults = this.allResults;
-                    this.step = 'results';
+                    
+                    // Store results in sessionStorage and navigate to dedicated results page
+                    sessionStorage.setItem('searchResults', JSON.stringify(this.allResults));
+                    window.location.href = '/image/search/results/';
                 })
                 .catch(err => {
                     console.error('Search error:', err);

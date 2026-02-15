@@ -81,54 +81,61 @@
 
             <!-- STEP: RESULTS -->
             <div x-show="step === 'results'" class="space-y-20 animate-fade-in pb-40">
-                    <div x-show="closetMatches.length > 0">
-                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mb-10">Your Digital Closet Synergy</h4>
-                        <div class="grid grid-cols-3 gap-8">
-                            <template x-for="item in closetMatches">
-                                <div @click="openDetail(item, true)" class="bg-white rounded-[40px] p-6 border border-gray-100 flex flex-col gap-6 cursor-pointer relative shadow-sm hover:border-black transition-all">
-                                    <div class="aspect-[3/4] bg-gray-50 rounded-[30px] overflow-hidden"><img :src="item.image" class="w-full h-full object-cover"></div>
+                <div x-show="closetMatches.length > 0">
+                    <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em] mb-10">Your Digital Closet Synergy</h4>
+                    <div class="grid grid-cols-3 gap-8">
+                        <template x-for="item in closetMatches">
+                            <div @click="openDetail(item, true)" class="bg-white rounded-[40px] p-6 border border-gray-100 flex flex-col gap-6 cursor-pointer relative shadow-sm hover:border-black transition-all">
+                                <div class="aspect-[3/4] bg-gray-50 rounded-[30px] overflow-hidden"><img :src="item.image" class="w-full h-full object-cover"></div>
+                                <div>
+                                    <span class="text-[9px] font-black bg-black text-white px-3 py-1 rounded-full uppercase tracking-widest">OWNED</span>
+                                    <h4 class="font-bold text-xl mt-4 tracking-tight" x-text="item.name"></h4>
+                                    <p class="text-xs text-gray-400 mt-2 font-bold uppercase tracking-widest">Available in your locker</p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-10">
+                        <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Recommended Purchases</h4>
+                        <button @click="vibeCheck()" class="text-xs font-black px-6 py-2 border-2 border-black rounded-full uppercase tracking-widest hover:bg-black hover:text-white transition-all">Vibe Check Vote</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8">
+                        <template x-for="item in filteredResults">
+                            <div @click="openDetail(item)" class="bg-white rounded-[48px] p-8 border border-gray-100 shadow-sm flex gap-10 cursor-pointer hover:border-black transition-all group">
+                                <div class="w-48 h-64 bg-gray-50 rounded-[32px] overflow-hidden shrink-0 border border-gray-100 relative">
+                                    <img :src="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                                    <template x-if="item.tags?.style && item.tags.style.includes('Vintage')"><div class="absolute bottom-4 left-4 right-4 bg-green-900 text-white text-[9px] text-center font-black py-2 rounded-full uppercase tracking-widest">Vintage</div></template>
+                                </div>
+                                <div class="flex-1 flex flex-col justify-between py-4">
                                     <div>
-                                        <span class="text-[9px] font-black bg-black text-white px-3 py-1 rounded-full uppercase tracking-widest">OWNED</span>
-                                        <h4 class="font-bold text-xl mt-4 tracking-tight" x-text="item.name"></h4>
-                                        <p class="text-xs text-gray-400 mt-2 font-bold uppercase tracking-widest">Available in your locker</p>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="flex justify-between items-center mb-10">
-                            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">Recommended Purchases</h4>
-                            <button @click="vibeCheck()" class="text-xs font-black px-6 py-2 border-2 border-black rounded-full uppercase tracking-widest hover:bg-black hover:text-white transition-all">Vibe Check Vote</button>
-                        </div>
-                        <div class="grid grid-cols-2 gap-8">
-                            <template x-for="item in filteredResults">
-                                <div @click="openDetail(item)" class="bg-white rounded-[48px] p-8 border border-gray-100 shadow-sm flex gap-10 cursor-pointer hover:border-black transition-all group">
-                                    <div class="w-48 h-64 bg-gray-50 rounded-[32px] overflow-hidden shrink-0 border border-gray-100 relative">
-                                        <img :src="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-                                        <template x-if="item.isVintage"><div class="absolute bottom-4 left-4 right-4 bg-green-900 text-white text-[9px] text-center font-black py-2 rounded-full uppercase tracking-widest">Vintage</div></template>
-                                    </div>
-                                    <div class="flex-1 flex flex-col justify-between py-4">
-                                        <div>
-                                            <div class="flex justify-between items-center mb-4">
-                                                <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-400" x-text="item.brand"></span>
-                                                <span class="text-[9px] font-black text-white bg-black px-3 py-1 rounded-full" x-text="item.isLocal ? 'IN STORE' : 'WEB'"></span>
-                                            </div>
-                                            <h4 class="text-3xl font-bold leading-none tracking-tighter" x-text="item.name"></h4>
-                                            <p class="text-sm text-gray-400 font-bold mt-4 uppercase tracking-widest" x-text="item.isLocal ? 'Ganjlik Mall • Baku' : item.brand"></p>
+                                        <div class="flex justify-between items-center mb-4">
+                                            <span class="text-xs font-black uppercase tracking-[0.2em] text-gray-400" x-text="item.tags?.color || 'N/A'"></span>
+                                            <span class="text-[9px] font-black text-white bg-black px-3 py-1 rounded-full" x-text="item.source === 'LOCAL' ? 'IN STORE' : 'WEB'"></span>
                                         </div>
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-3xl font-bold tracking-tighter" x-text="item.price"></span>
-                                            <span class="text-xs font-black border-b-2 border-black pb-1 uppercase tracking-widest">Product Details</span>
+                                        <h4 class="text-2xl font-bold leading-none tracking-tighter" x-text="item.tags?.type || 'Item'"></h4>
+                                        <p class="text-sm text-gray-400 font-bold mt-4 uppercase tracking-widest" x-text="item.source === 'LOCAL' ? item.market_location : item.market_name"></p>
+                                        <div class="flex flex-wrap gap-2 mt-3">
+                                            <template x-if="item.tags?.material">
+                                                <span class="text-[9px] bg-gray-100 px-2 py-1 rounded-full font-semibold" x-text="item.tags.material"></span>
+                                            </template>
+                                            <template x-if="item.tags?.style">
+                                                <span class="text-[9px] bg-gray-100 px-2 py-1 rounded-full font-semibold" x-text="item.tags.style"></span>
+                                            </template>
                                         </div>
                                     </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-lg font-bold tracking-tighter" x-text="'Match: ' + Math.round(item.score * 100) + '%'"></span>
+                                        <span class="text-xs font-black border-b-2 border-black pb-1 uppercase tracking-widest">Details</span>
+                                    </div>
                                 </div>
-                            </template>
-                        </div>
+                            </div>
+                        </template>
                     </div>
+                </div>
             </div>
-
         </div>
     </div>
 </div>
